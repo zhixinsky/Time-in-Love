@@ -255,7 +255,7 @@ function noop() {}
   position: relative;
   height: 416rpx;
   margin: -72rpx -24rpx 28rpx;
-  padding: 84rpx 42rpx 0;
+  padding: 104rpx 210rpx 0 42rpx;
   overflow: hidden;
 }
 

@@ -1,13 +1,15 @@
 <template>
-  <view class="safe-page qa-page">
+  <view class="safe-page qa-page app-nav-page">
     <image class="page-bg" :src="cloudLoveBg" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="head">
-          <view class="back tap-scale" @tap="goHome">‹</view>
-          <view>
-            <text class="soft-title">甜蜜问答</text>
-            <text class="soft-subtitle">每天回答一个更靠近彼此的问题</text>
+        <view class="app-nav">
+          <view class="app-nav__main">
+            <view class="app-nav__back tap-scale" @tap="goHome">‹</view>
+            <view class="app-nav__copy">
+              <text class="app-nav__title">甜蜜问答</text>
+              <text class="app-nav__subtitle">每天回答一个更靠近彼此的问题</text>
+            </view>
           </view>
         </view>
 
@@ -104,28 +106,6 @@ function goHome() {
   left: 0;
   z-index: 0;
   width: 100%;
-}
-
-.head {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  margin-bottom: 28rpx;
-}
-
-.back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  color: $text-main;
-  font-size: 52rpx;
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: $shadow;
 }
 
 .question-card,

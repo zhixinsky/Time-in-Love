@@ -1,13 +1,15 @@
 <template>
-  <view class="safe-page ai-page">
+  <view class="safe-page ai-page app-nav-page">
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner simple">
-        <view class="ai-head">
-          <image class="avatar-img" :src="cloudLogo" mode="aspectFit" />
-          <view>
-            <text class="soft-title">AI星芽</text>
-            <text class="soft-subtitle">帮你把喜欢说得更温柔</text>
+        <view class="app-nav ai-head">
+          <view class="app-nav__main">
+            <view class="app-nav__copy">
+              <text class="app-nav__title">AI星芽</text>
+              <text class="app-nav__subtitle">帮你把喜欢说得更温柔</text>
+            </view>
           </view>
+          <image class="avatar-img app-nav__action" :src="cloudLogo" mode="aspectFit" />
         </view>
 
         <view class="features">
@@ -93,15 +95,8 @@ function copyResult() {
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
 
-.simple {
-  padding-top: 104rpx;
-}
-
 .ai-head {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-  margin-bottom: 28rpx;
+  justify-content: flex-start;
 }
 
 .avatar-img {

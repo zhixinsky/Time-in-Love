@@ -1,6 +1,14 @@
 <template>
-  <view class="safe-page">
+  <view class="safe-page profile-page app-nav-page">
     <view class="page-inner simple">
+      <view class="app-nav">
+        <view class="app-nav__main">
+          <view class="app-nav__copy">
+            <text class="app-nav__title">我的</text>
+            <text class="app-nav__subtitle">管理你们的恋爱空间</text>
+          </view>
+        </view>
+      </view>
       <view class="card profile-card">
         <image class="avatar-img" :src="displayPhoto" mode="aspectFill" />
         <view>
@@ -128,10 +136,6 @@ function resetSpace() {
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.simple {
-  padding-top: 104rpx;
-}
 
 .profile-card {
   display: flex;

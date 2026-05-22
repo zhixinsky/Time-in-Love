@@ -2,12 +2,15 @@
   <view class="safe-page edit-page">
     <image class="edit-bg" :src="cloudLoveBg" mode="widthFix" />
 
-    <view class="edit-nav">
-      <view class="nav-back tap-scale" @tap="goBack">
-        <text class="back-arrow">‹</text>
+    <view class="app-nav edit-nav">
+      <view class="app-nav__main">
+        <view class="app-nav__back tap-scale" @tap="goBack">
+          <text>‹</text>
+        </view>
+        <view class="app-nav__copy">
+          <text class="app-nav__title">{{ isEdit ? '编辑心动日记' : '记录心动瞬间' }}</text>
+        </view>
       </view>
-      <text class="nav-title">{{ isEdit ? '编辑心动日记' : '记录心动瞬间' }}</text>
-      <view class="nav-placeholder" />
     </view>
 
     <scroll-view class="edit-scroll" scroll-y enable-flex :show-scrollbar="false" enhanced>
@@ -373,43 +376,13 @@ onLoad((query) => {
 }
 
 .edit-nav {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  padding: 24rpx 24rpx 8rpx;
-}
-
-.nav-back {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-arrow {
-  font-size: 48rpx;
-  color: #4a3d52;
-  line-height: 1;
-}
-
-.nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 800;
-  color: #4a3d52;
-}
-
-.nav-placeholder {
-  width: 64rpx;
+  margin: 0;
 }
 
 .edit-scroll {
   position: relative;
   z-index: 5;
-  height: calc(100vh - 180rpx);
+  height: calc(100vh - 212rpx);
   padding: 0 24rpx;
   box-sizing: border-box;
 }

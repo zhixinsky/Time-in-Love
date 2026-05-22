@@ -2,14 +2,16 @@
   <view class="safe-page diary-page">
     <image class="diary-bg" :src="cloudLoveBg" mode="widthFix" />
 
-    <view class="diary-nav">
-      <view class="nav-left">
-        <view class="nav-back tap-scale" @tap="goHome">
+    <view class="app-nav diary-nav">
+      <view class="app-nav__main">
+        <view class="app-nav__back tap-scale" @tap="goHome">
           <text>‹</text>
         </view>
-        <text class="nav-title">心动日记</text>
+        <view class="app-nav__copy">
+          <text class="app-nav__title">心动日记</text>
+        </view>
       </view>
-      <view class="nav-right">
+      <view class="nav-right app-nav__action">
         <picker mode="date" :value="diary.selectedDate" @change="onPickDate">
           <view class="nav-calendar tap-scale">
             <text class="cal-icon">▦</text>
@@ -347,40 +349,7 @@ onShow(() => {
 }
 
 .diary-nav {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 32rpx 8rpx;
-}
-
-.nav-title {
-  font-size: 36rpx;
-  font-weight: 800;
-  color: #4a3d52;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.nav-back {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 22rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7b647f;
-  font-size: 48rpx;
-  font-weight: 300;
-  line-height: 1;
-  background: rgba(255, 255, 255, 0.58);
-  border: 1rpx solid rgba(255, 255, 255, 0.72);
-  box-shadow: 0 10rpx 28rpx rgba(255, 170, 210, 0.12);
+  margin: 0;
 }
 
 .nav-right {
@@ -409,7 +378,7 @@ onShow(() => {
 .diary-scroll {
   position: relative;
   z-index: 5;
-  height: calc(100vh - 136rpx);
+  height: calc(100vh - 212rpx);
   padding: 0 24rpx;
   box-sizing: border-box;
 }

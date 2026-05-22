@@ -1,12 +1,16 @@
 <template>
-  <view class="safe-page bill-page">
+  <view class="safe-page bill-page app-nav-page">
     <image class="page-bg" :src="cloudLoveBg" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="head">
-          <text class="soft-title">恋爱小记账</text>
+        <view class="app-nav">
+          <view class="app-nav__main">
+            <view class="app-nav__copy">
+              <text class="app-nav__title">恋爱小记账</text>
+            </view>
+          </view>
           <picker mode="date" fields="month" :value="bill.month" @change="changeMonth">
-            <view class="month-picker">{{ bill.month }} ▾</view>
+            <view class="month-picker app-nav__action">{{ bill.month }} ▾</view>
           </picker>
         </view>
 
@@ -179,15 +183,6 @@ function removeItem(item) {
   left: 0;
   z-index: 0;
   width: 100%;
-}
-
-.head {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 26rpx;
 }
 
 .month-picker {
