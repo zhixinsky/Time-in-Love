@@ -5,6 +5,7 @@ const projectRoot = path.resolve(__dirname, '..')
 const distRoot = path.join(projectRoot, 'dist', 'build', 'mp-weixin')
 const configPath = path.join(distRoot, 'project.config.json')
 const privateConfigPath = path.join(distRoot, 'project.private.config.json')
+const WX_CLOUD_ENV_ID = 'prod-d0gd8tvq9c6e19eb3'
 
 if (fs.existsSync(configPath)) {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
@@ -19,6 +20,7 @@ if (fs.existsSync(configPath)) {
     miniprogram: { current: -1, list: [] }
   }
   delete config.miniprogramRoot
+  config.cloudbaseRoot = config.cloudbaseRoot || 'cloudbase/'
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`)
 }
 
@@ -29,6 +31,7 @@ fs.writeFileSync(
     {
       description: '本地开发配置，勿提交敏感信息',
       projectname: '星芽恋记',
+      cloudbaseEnv: WX_CLOUD_ENV_ID,
       setting: {
         urlCheck: false,
         ignoreDevUnusedFiles: false,

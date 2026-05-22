@@ -172,33 +172,32 @@ function extractCloudObjectPath(fileId) {
   return rest.slice(slash + 1)
 }
 
-/** 同一文件可能以短/长 CloudID 引用，解析时依次尝试 */
-function cloudFileIdVariants(fileId) {
+/** 仅使用完整 CloudID（cloud://环境ID.桶ID/路径），短格式会报 Env Not Exists */
+function normalizeCloudFileId(fileId) {
   const id = String(fileId || '').trim()
-  if (!id.startsWith('cloud://')) return [id]
+  if (!id.startsWith('cloud://')) return id
   const path = extractCloudObjectPath(id)
-  if (!path) return [id]
+  if (!path) return id
   const full = `cloud://${WX_CLOUD_ENV_ID}.${COS_BUCKET}/${path}`
-  const short = `cloud://${WX_CLOUD_ENV_ID}/${path}`
-  return [...new Set([id, full, short])]
-}
-
-function cloudApiConfig() {
-  return { env: WX_CLOUD_ENV_ID }
+  const rest = id.slice('cloud://'.length)
+  const slash = rest.indexOf('/')
+  const dot = rest.indexOf('.')
+  const hasBucketSegment = slash > 0 && dot > 0 && dot < slash
+  return hasBucketSegment ? id : full
 }
 
 function fetchCloudTempUrl(fileId) {
   return new Promise((resolve, reject) => {
     wx.cloud.getTempFileURL({
-      config: cloudApiConfig(),
       fileList: [{ fileID: fileId, maxAge: 7200 }],
       success(res) {
         const item = res?.fileList?.[0]
-        if (item?.status === 0 && item?.tempFileURL) {
-          resolve(rememberCloudFile(fileId, item.tempFileURL))
+        const url = item?.tempFileURL || item?.download_url || ''
+        if (url && (item?.status === 0 || item?.status === undefined)) {
+          resolve(rememberCloudFile(fileId, url))
           return
         }
-        reject(new Error(item?.errMsg || 'getTempFileURL failed'))
+        reject(new Error(item?.errMsg || item?.errCode || 'getTempFileURL failed'))
       },
       fail: reject
     })
@@ -208,11 +207,11 @@ function fetchCloudTempUrl(fileId) {
 function downloadCloudToLocal(fileId) {
   return new Promise((resolve, reject) => {
     wx.cloud.downloadFile({
-      config: cloudApiConfig(),
       fileID: fileId,
       success(res) {
-        if (res?.tempFilePath) {
-          resolve(rememberCloudFile(fileId, res.tempFilePath))
+        const path = res?.tempFilePath || res?.filePath || ''
+        if (path) {
+          resolve(rememberCloudFile(fileId, path))
           return
         }
         reject(new Error('downloadFile: empty tempFilePath'))
@@ -223,27 +222,34 @@ function downloadCloudToLocal(fileId) {
 }
 
 async function resolveCloudFileIdOnce(fileId, audio) {
+  const tryTemp = () => fetchCloudTempUrl(fileId)
+  const tryDownload = () => downloadCloudToLocal(fileId)
   const chain = audio
-    ? () => fetchCloudTempUrl(fileId).catch(() => downloadCloudToLocal(fileId))
-    : () => downloadCloudToLocal(fileId).catch(() => fetchCloudTempUrl(fileId))
+    ? [tryTemp, tryDownload]
+    : [tryTemp, tryDownload]
 
-  const url = await chain()
-  if (!isUsableCloudMediaUrl(url)) {
-    throw new Error('invalid cloud media url')
+  let lastErr = null
+  for (const run of chain) {
+    try {
+      const url = await run()
+      if (isUsableCloudMediaUrl(url)) return url
+      lastErr = new Error(`invalid cloud media url: ${String(url).slice(0, 120)}`)
+    } catch (e) {
+      lastErr = e
+    }
   }
-  return url
+  throw lastErr || new Error('invalid cloud media url')
 }
 
 function isUsableCloudMediaUrl(url) {
   if (!url || typeof url !== 'string') return false
-  if (url.startsWith('cloud://')) return false
-  if (url.includes('.tcb.qcloud.la/') && !url.includes('?')) return false
-  return (
-    url.startsWith('https://') ||
-    url.startsWith('http://') ||
-    url.startsWith('wxfile://') ||
-    url.startsWith('file://')
-  )
+  const u = url.trim()
+  if (u.startsWith('cloud://')) return false
+  if (u.includes('.tcb.qcloud.la/') && !u.includes('?')) return false
+  if (/^https?:\/\//i.test(u)) return true
+  if (u.startsWith('wxfile://') || u.startsWith('file://')) return true
+  if (u.startsWith('/') && !u.startsWith('//')) return true
+  return false
 }
 
 /**
@@ -255,39 +261,36 @@ export function resolveCloudFileUrl(fileId, options = {}) {
   if (!id) return Promise.resolve('')
   if (!id.startsWith('cloud://')) return Promise.resolve(id)
 
-  for (const key of cloudFileIdVariants(id)) {
-    if (cloudFileCache.has(key)) return Promise.resolve(cloudFileCache.get(key))
-  }
+  const normalizedId = normalizeCloudFileId(id)
+  if (cloudFileCache.has(normalizedId)) return Promise.resolve(cloudFileCache.get(normalizedId))
 
   const { audio = false } = options
 
   return new Promise((resolve, reject) => {
     // #ifdef MP-WEIXIN
-    ensureCloudContainer()
+    if (!ensureCloudContainer()) {
+      reject(
+        new Error(
+          `请先在开发者工具「云开发」选择环境 ${WX_CLOUD_ENV_ID}，并确认 wx.cloud 已初始化`
+        )
+      )
+      return
+    }
     if (typeof wx === 'undefined' || !wx.cloud) {
       reject(new Error('wx.cloud 不可用'))
       return
     }
 
-    const variants = cloudFileIdVariants(id)
     ;(async () => {
-      let lastErr = null
-      for (const candidate of variants) {
-        if (cloudFileCache.has(candidate)) {
-          resolve(cloudFileCache.get(candidate))
-          return
-        }
-        try {
-          const url = await resolveCloudFileIdOnce(candidate, audio)
-          variants.forEach((v) => rememberCloudFile(v, url))
-          resolve(url)
-          return
-        } catch (e) {
-          lastErr = e
-          console.warn('[cloud] resolve failed', candidate, e?.message || e)
-        }
+      try {
+        const url = await resolveCloudFileIdOnce(normalizedId, audio)
+        rememberCloudFile(normalizedId, url)
+        rememberCloudFile(id, url)
+        resolve(url)
+      } catch (e) {
+        console.warn('[cloud] resolve failed', normalizedId, e?.message || e)
+        reject(e)
       }
-      reject(lastErr || new Error('cloud file resolve failed'))
     })()
     // #endif
     // #ifndef MP-WEIXIN

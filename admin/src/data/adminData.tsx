@@ -14,6 +14,7 @@ import {
   ListChecks,
   LockKeyhole,
   MessageCircleHeart,
+  Music2,
   NotebookPen,
   Settings,
   ShieldAlert,
@@ -66,6 +67,7 @@ export const menuGroups = [
     label: '运营与安全',
     items: [
       { path: '/ai', label: 'AI星芽', icon: Bot },
+      { path: '/music', label: '恋爱音乐', icon: Music2 },
       { path: '/review', label: '内容审核', icon: ShieldAlert },
       { path: '/reports', label: '举报管理', icon: Flag },
       { path: '/banners', label: 'Banner管理', icon: Image },

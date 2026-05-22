@@ -9,6 +9,7 @@ import { AIPage } from './pages/AIPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ReviewPage } from './pages/ReviewPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
+import { MusicPage } from './pages/MusicPage'
 import { moduleRoutes } from './data/adminData'
 import { useAdminStore } from './store/useAdminStore'
 
@@ -34,6 +35,7 @@ function PrivateRoutes() {
             <Route path="/albums" element={<GalleryPage kind="albums" />} />
             <Route path="/files" element={<GalleryPage kind="files" />} />
             <Route path="/ai" element={<AIPage />} />
+            <Route path="/music" element={<MusicPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             {moduleRoutes.map((item) => (
