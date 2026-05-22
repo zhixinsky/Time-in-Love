@@ -20,7 +20,7 @@
           <template v-if="tab.center">
             <view class="center-orb">
               <view class="orb-logo-wrap">
-                <CloudImage image-class="orb-logo" :file-id="CLOUD_AI_LOGO" mode="aspectFit" />
+                <image class="orb-logo" :src="CLOUD_AI_LOGO" mode="aspectFit" />
               </view>
             </view>
           </template>
@@ -42,7 +42,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import CloudImage from './CloudImage.vue'
 import { CLOUD_AI_LOGO } from '../config'
 
 const props = defineProps({

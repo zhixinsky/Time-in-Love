@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page edit-page">
-    <CloudImage image-class="edit-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
+    <image class="edit-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
 
     <view class="app-nav edit-nav">
       <view class="app-nav__main">
@@ -155,7 +155,6 @@ import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useDiaryStore } from '../../stores/diary'
 import { useAuthStore } from '../../stores/auth'
-import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 
 import diaryApi from '../../services/diary'

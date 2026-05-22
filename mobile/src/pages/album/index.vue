@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page album-page app-nav-page">
-    <CloudImage image-class="page-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
+    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
         <view class="app-nav">
@@ -65,7 +65,6 @@ import { onShow } from '@dcloudio/uni-app'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useAlbumStore } from '../../stores/album'
-import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 import { resolveMediaUrl } from '../../services/request'
 

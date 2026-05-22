@@ -9,7 +9,7 @@
               <text class="app-nav__subtitle">帮你把喜欢说得更温柔</text>
             </view>
           </view>
-          <CloudImage image-class="avatar-img app-nav__action" :file-id="CLOUD_LOGO" mode="aspectFit" />
+          <image class="avatar-img app-nav__action" :src="CLOUD_LOGO" mode="aspectFit" />
         </view>
 
         <view class="features">
@@ -56,7 +56,6 @@
 import { ref } from 'vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
-import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOGO } from '../../config'
 import { useAiStore } from '../../stores/ai'
 

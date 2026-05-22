@@ -2,7 +2,6 @@ import { onAppHide, onAppShow } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { CLOUD_LOVE_BG } from '../config'
 import { DEFAULT_LOVE_MUSIC, musicApi } from '../services/music'
-import { resolveCloudFileUrl } from '../services/request'
 
 function readSession(key) {
   return uni.getStorageSync(key)
@@ -39,7 +38,6 @@ let leavingPage = false
 let pageHideDeferTimer = null
 let lastPersistAt = 0
 let lifecycleBound = false
-let playGeneration = 0
 let resumeInflight = null
 let resumeDebounceTimer = null
 
@@ -187,8 +185,7 @@ function pickRandom(excludeSrc) {
   return list[Math.floor(Math.random() * list.length)]
 }
 
-async function playItem(item, { autoplay = true, startTime = 0 } = {}) {
-  const gen = ++playGeneration
+function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   const bgm = ensureManager()
   if (!bgm || !item?.src) {
     showMusicToast({ title: '请在微信小程序中播放音乐', icon: 'none' })
@@ -201,39 +198,19 @@ async function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   const seekAt = Math.max(0, startTime)
   pendingSeekAfterLoad = seekAt
 
-  let audioSrc = ''
-  let coverUrl = ''
-  try {
-    audioSrc = await resolveCloudFileUrl(next.src, { audio: true })
-    if (gen !== playGeneration) return
-    coverUrl = await resolveCloudFileUrl(next.coverImgUrl || CLOUD_LOVE_BG)
-    if (gen !== playGeneration) return
-  } catch (e) {
-    if (gen !== playGeneration) return
-    console.warn('[love-music] resolve cloud media failed', e)
-    showMusicToast({ title: '音乐暂时无法播放', icon: 'none' })
-    return
-  }
-
-  if (!audioSrc) {
-    showMusicToast({ title: '音乐暂时无法播放', icon: 'none' })
-    return
-  }
-
   bgm.title = next.title || '恋爱时光'
   bgm.singer = next.singer || 'AI星芽'
   bgm.epname = next.epname || '星芽恋记情侣空间'
-  bgm.coverImgUrl = coverUrl
+  bgm.coverImgUrl = next.coverImgUrl || CLOUD_LOVE_BG
   bgm.webUrl = '/pages/home/index'
 
-  const sameResolved = bgm.src === audioSrc
+  const sameSrc = bgm.src === next.src
   const liveAt = getManagerCurrentTime(bgm)
   const mustReloadForSeek = seekAt > 0 && liveAt < seekAt - 1
 
-  if (!sameResolved || mustReloadForSeek) {
-    // 设置 src 会自动播放，勿再调 play()，否则触发 interrupted by new load
+  if (!sameSrc || mustReloadForSeek) {
     bgm.startTime = seekAt
-    bgm.src = audioSrc
+    bgm.src = next.src
     if (seekAt > 0) scheduleSeekRetries(bgm)
     if (!autoplay) {
       setTimeout(() => {

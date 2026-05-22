@@ -155,146 +155,37 @@ export function resolveMediaUrl(url) {
   return url
 }
 
-/** cloud:// → 本地临时路径或 HTTPS 签名（须放在 services/request，避免 Skyline 懒加载未注册 utils 子模块） */
-const cloudFileCache = new Map()
+/** 与 Moona 一致：仅 getTempFileURL，失败则保留 cloud://（海报/分享等需 HTTPS 时用） */
+const cloudTempUrlCache = new Map()
 
-function rememberCloudFile(fileId, url) {
-  if (url) cloudFileCache.set(fileId, url)
-  return url
-}
+export function resolveCloudFileUrl(fileId) {
+  const fileID = String(fileId || '').trim()
+  if (!fileID || !fileID.startsWith('cloud://')) return Promise.resolve(fileID)
+  const cached = cloudTempUrlCache.get(fileID)
+  if (cached) return Promise.resolve(cached)
 
-function extractCloudObjectPath(fileId) {
-  const id = String(fileId || '').trim()
-  if (!id.startsWith('cloud://')) return ''
-  const rest = id.slice('cloud://'.length)
-  const slash = rest.indexOf('/')
-  if (slash < 0) return ''
-  return rest.slice(slash + 1)
-}
-
-/** 仅使用完整 CloudID（cloud://环境ID.桶ID/路径），短格式会报 Env Not Exists */
-function normalizeCloudFileId(fileId) {
-  const id = String(fileId || '').trim()
-  if (!id.startsWith('cloud://')) return id
-  const path = extractCloudObjectPath(id)
-  if (!path) return id
-  const full = `cloud://${WX_CLOUD_ENV_ID}.${COS_BUCKET}/${path}`
-  const rest = id.slice('cloud://'.length)
-  const slash = rest.indexOf('/')
-  const dot = rest.indexOf('.')
-  const hasBucketSegment = slash > 0 && dot > 0 && dot < slash
-  return hasBucketSegment ? id : full
-}
-
-function fetchCloudTempUrl(fileId) {
-  return new Promise((resolve, reject) => {
-    wx.cloud.getTempFileURL({
-      fileList: [{ fileID: fileId, maxAge: 7200 }],
-      success(res) {
-        const item = res?.fileList?.[0]
-        const url = item?.tempFileURL || item?.download_url || ''
-        if (url && (item?.status === 0 || item?.status === undefined)) {
-          resolve(rememberCloudFile(fileId, url))
-          return
-        }
-        reject(new Error(item?.errMsg || item?.errCode || 'getTempFileURL failed'))
-      },
-      fail: reject
-    })
-  })
-}
-
-function downloadCloudToLocal(fileId) {
-  return new Promise((resolve, reject) => {
-    wx.cloud.downloadFile({
-      fileID: fileId,
-      success(res) {
-        const path = res?.tempFilePath || res?.filePath || ''
-        if (path) {
-          resolve(rememberCloudFile(fileId, path))
-          return
-        }
-        reject(new Error('downloadFile: empty tempFilePath'))
-      },
-      fail: reject
-    })
-  })
-}
-
-async function resolveCloudFileIdOnce(fileId, audio) {
-  const tryTemp = () => fetchCloudTempUrl(fileId)
-  const tryDownload = () => downloadCloudToLocal(fileId)
-  const chain = audio
-    ? [tryTemp, tryDownload]
-    : [tryTemp, tryDownload]
-
-  let lastErr = null
-  for (const run of chain) {
-    try {
-      const url = await run()
-      if (isUsableCloudMediaUrl(url)) return url
-      lastErr = new Error(`invalid cloud media url: ${String(url).slice(0, 120)}`)
-    } catch (e) {
-      lastErr = e
-    }
-  }
-  throw lastErr || new Error('invalid cloud media url')
-}
-
-function isUsableCloudMediaUrl(url) {
-  if (!url || typeof url !== 'string') return false
-  const u = url.trim()
-  if (u.startsWith('cloud://')) return false
-  if (u.includes('.tcb.qcloud.la/') && !u.includes('?')) return false
-  if (/^https?:\/\//i.test(u)) return true
-  if (u.startsWith('wxfile://') || u.startsWith('file://')) return true
-  if (u.startsWith('/') && !u.startsWith('//')) return true
-  return false
-}
-
-/**
- * @param {string} fileId
- * @param {{ audio?: boolean }} [options] 音频优先 getTempFileURL（HTTPS 签名）
- */
-export function resolveCloudFileUrl(fileId, options = {}) {
-  const id = String(fileId || '').trim()
-  if (!id) return Promise.resolve('')
-  if (!id.startsWith('cloud://')) return Promise.resolve(id)
-
-  const normalizedId = normalizeCloudFileId(id)
-  if (cloudFileCache.has(normalizedId)) return Promise.resolve(cloudFileCache.get(normalizedId))
-
-  const { audio = false } = options
-
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // #ifdef MP-WEIXIN
-    if (!ensureCloudContainer()) {
-      reject(
-        new Error(
-          `请先在开发者工具「云开发」选择环境 ${WX_CLOUD_ENV_ID}，并确认 wx.cloud 已初始化`
-        )
-      )
+    if (!ensureCloudContainer() || typeof wx === 'undefined' || !wx.cloud?.getTempFileURL) {
+      resolve(fileID)
       return
     }
-    if (typeof wx === 'undefined' || !wx.cloud) {
-      reject(new Error('wx.cloud 不可用'))
-      return
-    }
-
-    ;(async () => {
-      try {
-        const url = await resolveCloudFileIdOnce(normalizedId, audio)
-        rememberCloudFile(normalizedId, url)
-        rememberCloudFile(id, url)
-        resolve(url)
-      } catch (e) {
-        console.warn('[cloud] resolve failed', normalizedId, e?.message || e)
-        reject(e)
-      }
-    })()
+    wx.cloud.getTempFileURL({
+      fileList: [fileID],
+      success(res) {
+        const tempUrl = res?.fileList?.[0]?.tempFileURL || ''
+        if (tempUrl) {
+          cloudTempUrlCache.set(fileID, tempUrl)
+          resolve(tempUrl)
+          return
+        }
+        resolve(fileID)
+      },
+      fail: () => resolve(fileID)
+    })
     // #endif
     // #ifndef MP-WEIXIN
-    resolve(id)
+    resolve(fileID)
     // #endif
   })
 }
@@ -304,7 +195,7 @@ export function uploadFile(path, filePath, formData = {}) {
   if (USE_CLOUD_CONTAINER && typeof wx !== 'undefined' && wx.cloud) {
     ensureCloudContainer()
     const ext = String(filePath || '').split('.').pop() || (path.includes('video') ? 'mp4' : 'jpg')
-    const folder = path.includes('video') ? 'uploads/videos' : 'uploads/images'
+    const folder = path.includes('video') ? 'uploads/videos' : 'avatars'
     const cloudPath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
     return new Promise((resolve, reject) => {
       wx.cloud.uploadFile({

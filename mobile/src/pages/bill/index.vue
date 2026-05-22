@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page bill-page app-nav-page">
-    <CloudImage image-class="page-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
+    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
         <view class="app-nav">
@@ -93,7 +93,6 @@ import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useBillStore } from '../../stores/bill'
 import { useLoveStore } from '../../stores/love'
-import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 
 const bill = useBillStore()

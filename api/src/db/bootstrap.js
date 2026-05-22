@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url'
 import mysql from 'mysql2/promise'
 import { config } from '../config/index.js'
 import { isDbEnabled } from './pool.js'
+import { toCloudFileId } from '../utils/cloud-file-id.js'
+import { createId } from '../utils/id.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = path.join(__dirname, '../../scripts')
@@ -53,6 +55,23 @@ async function runSqlFile(conn, filename, { optional = false } = {}) {
   }
 }
 
+async function ensureDefaultBackgroundMusic(conn) {
+  const db = config.mysql.database
+  await conn.query(`USE \`${db}\``)
+  const [rows] = await conn.query('SELECT COUNT(*) AS c FROM love_background_music')
+  if (Number(rows[0]?.c || 0) > 0) return
+  const cover = toCloudFileId(config.music.cloudEnv, config.music.bucket, config.music.coverKey)
+  const fileId = toCloudFileId(config.music.cloudEnv, config.music.bucket, 'music/love-bgm.mp3')
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  await conn.query(
+    `INSERT INTO love_background_music
+      (id, title, singer, epname, file_id, cover_img_url, enabled, loop_enabled, sort, remark, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 1, 1, 1, ?, ?, ?)`,
+    [createId('bgm'), '恋爱时光', 'AI星芽', '星芽恋记情侣空间', fileId, cover, '默认背景音乐', now, now]
+  )
+  console.log('[db-bootstrap] default background music inserted')
+}
+
 async function needsSeed(conn) {
   const db = config.mysql.database
   await conn.query(
@@ -90,6 +109,8 @@ export async function bootstrapDatabase() {
     } else {
       console.log('[db-bootstrap] seed skipped (users exist)')
     }
+
+    await ensureDefaultBackgroundMusic(conn)
 
     console.log(`[db-bootstrap] ready: ${config.mysql.database}`)
     return true

@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page home-page">
-    <CloudImage image-class="home-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
+    <image class="home-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
         <view class="hero">
@@ -154,7 +154,6 @@ import QuickSheet from '../../components/QuickSheet.vue'
 import { useLoveStore } from '../../stores/love'
 import { formatDate } from '../../utils/date'
 import { useLoveMusic } from '../../utils/love-music'
-import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 import { resolveMediaUrl } from '../../services/request'
 
