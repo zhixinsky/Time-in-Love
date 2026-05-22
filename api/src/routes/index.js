@@ -48,6 +48,7 @@ import {
   listChecklistHandler,
   updateChecklistItemHandler
 } from '../controllers/checklist-controller.js'
+import { answerTodayHandler, qaHistoryHandler, todayQuestionHandler } from '../controllers/qa-controller.js'
 import {
   adminCreateMusicHandler,
   adminDeleteMusicHandler,
@@ -153,6 +154,13 @@ checklistRouter.post('/', asyncHandler(createChecklistItemHandler))
 checklistRouter.patch('/:id', asyncHandler(updateChecklistItemHandler))
 checklistRouter.delete('/:id', asyncHandler(deleteChecklistItemHandler))
 apiRouter.use('/checklist', checklistRouter)
+
+const qaRouter = Router()
+qaRouter.use(requireAuth)
+qaRouter.get('/today', asyncHandler(todayQuestionHandler))
+qaRouter.post('/today/answer', asyncHandler(answerTodayHandler))
+qaRouter.get('/history', asyncHandler(qaHistoryHandler))
+apiRouter.use('/qa', qaRouter)
 
 const uploadRouter = Router()
 uploadRouter.use(requireAuth)

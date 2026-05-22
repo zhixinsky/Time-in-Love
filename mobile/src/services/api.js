@@ -61,6 +61,12 @@ export const api = {
 
   deleteChecklistItem: (id) => request(`/checklist/${id}`, { method: 'DELETE' }),
 
+  getTodayQuestion: () => request('/qa/today'),
+
+  answerTodayQuestion: (answer) => request('/qa/today/answer', { method: 'POST', data: { answer } }),
+
+  getQaHistory: () => request('/qa/history'),
+
   getLatestDiary: (spaceId) => request(`/spaces/${spaceId}/diaries/latest`),
 
   login: (code) => request('/auth/wechat-login', { method: 'POST', data: { code } }),

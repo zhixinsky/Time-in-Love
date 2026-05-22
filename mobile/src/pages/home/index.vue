@@ -200,7 +200,7 @@ const entries = [
   { label: '纪念日', icon: 'calendar', url: '/pages/anniversary/index' },
   { label: '时光相册', icon: 'album', url: '/pages/album/index' },
   { label: '恋爱清单', icon: 'checklist', url: '/pages/checklist/index' },
-  { label: '甜蜜问答', icon: 'message-heart' }
+  { label: '甜蜜问答', icon: 'message-heart', url: '/pages/qa/index' }
 ]
 
 function go(url) {
