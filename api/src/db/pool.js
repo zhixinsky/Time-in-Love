@@ -30,3 +30,10 @@ export async function dbQuery(sql, params = []) {
   const [rows] = await p.query(sql, params)
   return rows
 }
+
+export async function dbExecute(sql, params = []) {
+  const p = getPool()
+  if (!p) return null
+  const [result] = await p.execute(sql, params)
+  return result
+}

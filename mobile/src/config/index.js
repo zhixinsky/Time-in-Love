@@ -45,8 +45,19 @@ export const CLOUD_LOVE_BG = cloudAsset('love-bg.png')
 /** 演示鉴权头，后续接微信登录 */
 export const DEMO_USER_ID = 'u_me'
 export const DEMO_SPACE_ID = 'space_demo'
+export const AUTH_TOKEN_KEY = 'til_auth_token'
+export const AUTH_USER_KEY = 'til_auth_user'
+export const AUTH_SPACE_KEY = 'til_auth_space'
 
 export function getAuthHeaders() {
+  const token = uni.getStorageSync(AUTH_TOKEN_KEY)
+  const space = uni.getStorageSync(AUTH_SPACE_KEY)
+  if (token) {
+    return {
+      Authorization: `Bearer ${token}`,
+      ...(space?.id ? { 'X-Space-Id': space.id } : {})
+    }
+  }
   return {
     'X-User-Id': DEMO_USER_ID,
     'X-Space-Id': DEMO_SPACE_ID

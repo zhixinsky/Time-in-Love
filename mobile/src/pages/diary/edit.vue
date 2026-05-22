@@ -151,6 +151,7 @@
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useDiaryStore } from '../../stores/diary'
+import { useAuthStore } from '../../stores/auth'
 import { CLOUD_LOVE_BG } from '../../config'
 
 const cloudLoveBg = CLOUD_LOVE_BG
@@ -159,6 +160,7 @@ import { formatYmd, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl, uploadFile } from '../../services/request'
 
 const diary = useDiaryStore()
+const auth = useAuthStore()
 const diaryId = ref('')
 const isEdit = ref(false)
 const locationMode = ref('none')
@@ -251,6 +253,7 @@ function pickImages() {
     count: remain,
     sizeType: ['compressed'],
     success: async (res) => {
+      await auth.ensureLogin()
       for (const path of res.tempFilePaths) {
         try {
           uni.showLoading({ title: '上传中' })
@@ -271,6 +274,7 @@ function pickVideo() {
     maxDuration: 60,
     compressed: true,
     success: async (res) => {
+      await auth.ensureLogin()
       try {
         uni.showLoading({ title: '上传中' })
         const data = await uploadFile('/upload/video', res.tempFilePath, {

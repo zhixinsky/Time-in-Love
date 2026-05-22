@@ -2,14 +2,20 @@ import { Router } from 'express'
 import { asyncHandler } from '../middleware/error-handler.js'
 import { adminJwtAuth } from '../middleware/admin-jwt-auth.js'
 import { adminLoginHandler, adminMeHandler } from '../controllers/admin-auth-controller.js'
-import { wechatLoginHandler } from '../controllers/auth-controller.js'
+import { miniMeHandler, wechatLoginHandler } from '../controllers/auth-controller.js'
 import {
   adminListDiariesHandler,
   adminListSpacesHandler,
   adminListUsersHandler,
   adminOverviewHandler
 } from '../controllers/admin-controller.js'
-import { getDashboardHandler, getSpaceHandler, listSpacesHandler } from '../controllers/space-controller.js'
+import {
+  getCurrentDashboardHandler,
+  getCurrentSpaceHandler,
+  getDashboardHandler,
+  getSpaceHandler,
+  listSpacesHandler
+} from '../controllers/space-controller.js'
 import { getDashboard } from '../services/space-service.js'
 import { config } from '../config/index.js'
 import { isDbEnabled } from '../db/pool.js'
@@ -60,9 +66,12 @@ apiRouter.get('/health', (_req, res) => {
 
 // —— 认证 ——
 apiRouter.post('/auth/wechat-login', asyncHandler(wechatLoginHandler))
+apiRouter.get('/auth/me', requireAuth, asyncHandler(miniMeHandler))
 
 // —— 情侣空间（小程序） ——
 apiRouter.get('/spaces', asyncHandler(listSpacesHandler))
+apiRouter.get('/spaces/current', requireAuth, asyncHandler(getCurrentSpaceHandler))
+apiRouter.get('/spaces/current/dashboard', requireAuth, asyncHandler(getCurrentDashboardHandler))
 apiRouter.get('/spaces/:spaceId', asyncHandler(getSpaceHandler))
 apiRouter.get('/spaces/:spaceId/dashboard', asyncHandler(getDashboardHandler))
 apiRouter.get('/spaces/:spaceId/anniversaries', asyncHandler(async (req, res) => {

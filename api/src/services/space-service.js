@@ -38,8 +38,12 @@ function getDashboardFromSeed(spaceId) {
 
 export async function getSpace(spaceId) {
   if (isDbEnabled()) {
-    const row = await dbRepo.findSpaceById(spaceId)
-    if (row) return row
+    try {
+      const row = await dbRepo.findSpaceById(spaceId)
+      if (row) return row
+    } catch (err) {
+      console.error('[space-service] db get space failed, fallback seed', err.message)
+    }
   }
   return seed.spaces.find((s) => s.id === spaceId) || null
 }

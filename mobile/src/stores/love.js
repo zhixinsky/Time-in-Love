@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { fetchSpaceDashboard, DEMO_SPACE_ID } from '../services/space'
+import { fetchSpaceDashboard } from '../services/space'
+import { useAuthStore } from './auth'
 import { daysBetween, isSameMonthDay } from '../utils/date'
 
 export const useLoveStore = defineStore('love', () => {
@@ -60,11 +61,14 @@ export const useLoveStore = defineStore('love', () => {
   }
 
   /** 从云托管同步首页数据（失败时保持本地 mock） */
-  async function loadDashboard(spaceId = DEMO_SPACE_ID) {
+  async function loadDashboard(spaceId = 'current') {
     try {
+      const auth = useAuthStore()
+      await auth.ensureLogin()
       const data = await fetchSpaceDashboard(spaceId)
       if (!data) return false
       space.value = { ...space.value, ...data.space }
+      auth.syncSpace(space.value)
       anniversaries.value = data.anniversaries || anniversaries.value
       moods.value = data.moods || moods.value
       bills.value = data.bills || bills.value

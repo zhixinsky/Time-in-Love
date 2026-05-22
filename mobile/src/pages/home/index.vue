@@ -173,6 +173,7 @@ const {
 } = useLoveMusic()
 
 onLoad(() => {
+  love.loadDashboard()
   setTimeout(() => onPageShow(), 120)
 })
 

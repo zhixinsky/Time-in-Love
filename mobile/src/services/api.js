@@ -3,7 +3,11 @@ import request from './request'
 export const api = {
   health: () => request('/health'),
 
+  me: () => request('/auth/me'),
+
   getSpaceDashboard: (spaceId) => request(`/spaces/${spaceId}/dashboard`),
+
+  getCurrentSpaceDashboard: () => request('/spaces/current/dashboard'),
 
   listAnniversaries: (spaceId) => request(`/spaces/${spaceId}/anniversaries`),
 

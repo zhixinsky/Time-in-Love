@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import diaryApi from '../services/diary'
+import { useAuthStore } from './auth'
 import { buildWeekDays, formatYmd } from '../utils/diary-date'
 
 export const useDiaryStore = defineStore('diary', () => {
@@ -34,6 +35,7 @@ export const useDiaryStore = defineStore('diary', () => {
   async function fetchDiaryByDate(date = selectedDate.value) {
     loading.value = true
     try {
+      await useAuthStore().ensureLogin()
       const data = await diaryApi.getByDate(date)
       currentDiary.value = data?.diary || null
       currentMedia.value = data?.mediaList || []
@@ -52,6 +54,7 @@ export const useDiaryStore = defineStore('diary', () => {
 
   async function fetchTimeline(pageSize = 5) {
     try {
+      await useAuthStore().ensureLogin()
       const data = await diaryApi.getTimeline(1, pageSize)
       timelineList.value = data?.list || []
     } catch (e) {
@@ -63,6 +66,7 @@ export const useDiaryStore = defineStore('diary', () => {
   async function createDiary(payload) {
     submitting.value = true
     try {
+      await useAuthStore().ensureLogin()
       const data = await diaryApi.create(payload)
       await refreshAfterSave(payload.diaryDate)
       return data
@@ -74,6 +78,7 @@ export const useDiaryStore = defineStore('diary', () => {
   async function updateDiary(id, payload) {
     submitting.value = true
     try {
+      await useAuthStore().ensureLogin()
       const data = await diaryApi.update(id, payload)
       await refreshAfterSave(payload.diaryDate || selectedDate.value)
       return data
@@ -83,6 +88,7 @@ export const useDiaryStore = defineStore('diary', () => {
   }
 
   async function deleteDiary(id) {
+    await useAuthStore().ensureLogin()
     await diaryApi.remove(id)
     await refreshAfterSave(selectedDate.value)
   }
@@ -90,6 +96,7 @@ export const useDiaryStore = defineStore('diary', () => {
   async function generateAiSummary(id) {
     aiGenerating.value = true
     try {
+      await useAuthStore().ensureLogin()
       const data = await diaryApi.generateAiSummary(id)
       if (data?.diary) {
         currentDiary.value = data.diary
