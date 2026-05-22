@@ -53,6 +53,14 @@ export const api = {
     return request(`/albums/media${qs ? `?${qs}` : ''}`)
   },
 
+  listChecklist: () => request('/checklist'),
+
+  createChecklistItem: (data) => request('/checklist', { method: 'POST', data }),
+
+  updateChecklistItem: (id, data) => request(`/checklist/${id}`, { method: 'PATCH', data }),
+
+  deleteChecklistItem: (id) => request(`/checklist/${id}`, { method: 'DELETE' }),
+
   getLatestDiary: (spaceId) => request(`/spaces/${spaceId}/diaries/latest`),
 
   login: (code) => request('/auth/wechat-login', { method: 'POST', data: { code } }),

@@ -43,6 +43,12 @@ import { loopListHandler } from '../controllers/music-controller.js'
 import { createBillHandler, deleteBillHandler, listBillsHandler } from '../controllers/bill-controller.js'
 import { listAlbumMediaHandler } from '../controllers/album-controller.js'
 import {
+  createChecklistItemHandler,
+  deleteChecklistItemHandler,
+  listChecklistHandler,
+  updateChecklistItemHandler
+} from '../controllers/checklist-controller.js'
+import {
   adminCreateMusicHandler,
   adminDeleteMusicHandler,
   adminListMusicHandler,
@@ -139,6 +145,14 @@ const albumRouter = Router()
 albumRouter.use(requireAuth)
 albumRouter.get('/media', asyncHandler(listAlbumMediaHandler))
 apiRouter.use('/albums', albumRouter)
+
+const checklistRouter = Router()
+checklistRouter.use(requireAuth)
+checklistRouter.get('/', asyncHandler(listChecklistHandler))
+checklistRouter.post('/', asyncHandler(createChecklistItemHandler))
+checklistRouter.patch('/:id', asyncHandler(updateChecklistItemHandler))
+checklistRouter.delete('/:id', asyncHandler(deleteChecklistItemHandler))
+apiRouter.use('/checklist', checklistRouter)
 
 const uploadRouter = Router()
 uploadRouter.use(requireAuth)
