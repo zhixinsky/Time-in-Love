@@ -1,0 +1,21 @@
+{
+  "name": "time-in-love",
+  "version": "0.1.0",
+  "private": true,
+  "description": "星芽恋记 · 情侣空间 monorepo（小程序 + 云托管 API + 管理后台）",
+  "workspaces": [
+    "mobile",
+    "api",
+    "admin"
+  ],
+  "scripts": {
+    "dev:mobile": "npm run dev:mp-weixin -w @time-in-love/mobile",
+    "dev:mobile:h5": "npm run dev:h5 -w @time-in-love/mobile",
+    "build:mobile": "npm run build:mp-weixin -w @time-in-love/mobile",
+    "dev:api": "npm run dev -w @time-in-love/api",
+    "start:api": "npm run start -w @time-in-love/api",
+    "dev:admin": "npm run dev -w @time-in-love/admin",
+    "build:admin": "npm run build -w @time-in-love/admin",
+    "build:api": "npm run build -w @time-in-love/api"
+  }
+}

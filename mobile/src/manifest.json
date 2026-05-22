@@ -1,0 +1,31 @@
+{
+  "name": "星芽恋记",
+  "appid": "__UNI__TIMEINLOVE",
+  "description": "情侣共同记录恋爱日常的小程序",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "星芽恋记"
+  },
+  "mp-weixin": {
+    "appid": "wxb76bea40dcb2999b",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "renderer": "skyline",
+    "componentFramework": "glass-easel",
+    "lazyCodeLoading": "requiredComponents",
+    "rendererOptions": {
+      "skyline": {
+        "defaultDisplayBlock": true,
+        "disableABTest": true,
+        "defaultContentBox": true
+      }
+    }
+  }
+}

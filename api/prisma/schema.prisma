@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  openid      String   @unique
+  nickname    String?
+  avatar      String?
+  phone       String?
+  status      String   @default("enabled")
+  lastLoginAt DateTime?
+  createdAt   DateTime @default(now())
+
+  members   CoupleMember[]
+  diaries   Diary[]
+  moods     MoodCheckin[]
+  bills     CoupleBill[] @relation("BillPayer")
+  answers   QuestionAnswer[]
+  files     FileAsset[]
+}
+
+model CoupleSpace {
+  id                     String   @id @default(cuid())
+  name                   String
+  cover                  String?
+  startDate              DateTime?
+  anniversaryBgUrl       String?
+  anniversaryMaskOpacity Int      @default(35)
+  status                 String   @default("active")
+  recommended            Boolean  @default(false)
+  createdBy              String
+  createdAt              DateTime @default(now())
+
+  members       CoupleMember[]
+  diaries       Diary[]
+  anniversaries Anniversary[]
+  albums        Album[]
+  todos         LoveTodo[]
+  bills         CoupleBill[]
+  answers       QuestionAnswer[]
+  moods         MoodCheckin[]
+}
+
+model CoupleMember {
+  id         String   @id @default(cuid())
+  spaceId    String
+  userId     String
+  role       String   @default("owner")
+  loveAvatar String?
+  joinedAt   DateTime @default(now())
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  user  User        @relation(fields: [userId], references: [id])
+
+  @@unique([spaceId, userId])
+}
+
+model Diary {
+  id         String   @id @default(cuid())
+  spaceId    String
+  userId     String
+  content    String   @db.Text
+  mood       String?
+  weather    String?
+  location   String?
+  visibility String   @default("space")
+  status     String   @default("normal")
+  featured   Boolean  @default(false)
+  aiSummary  String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  user  User        @relation(fields: [userId], references: [id])
+  media DiaryMedia[]
+}
+
+model DiaryMedia {
+  id      String @id @default(cuid())
+  diaryId String
+  type    String
+  url     String
+  cover   String?
+  sort    Int    @default(0)
+  status  String @default("pending")
+
+  diary Diary @relation(fields: [diaryId], references: [id])
+}
+
+model Anniversary {
+  id         String   @id @default(cuid())
+  spaceId    String
+  title      String
+  date       DateTime
+  repeatType String   @default("none")
+  remind     Boolean  @default(false)
+  remark     String?
+  cover      String?
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+}
+
+model Album {
+  id        String   @id @default(cuid())
+  spaceId   String
+  title     String
+  cover     String?
+  privacy   String   @default("space")
+  createdBy String
+  createdAt DateTime @default(now())
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  media AlbumMedia[]
+}
+
+model AlbumMedia {
+  id        String   @id @default(cuid())
+  albumId   String
+  type      String
+  url       String
+  cover     String?
+  status    String   @default("pending")
+  createdBy String
+  createdAt DateTime @default(now())
+
+  album Album @relation(fields: [albumId], references: [id])
+}
+
+model LoveTodo {
+  id          String    @id @default(cuid())
+  spaceId     String
+  title       String
+  category    String
+  status      String    @default("todo")
+  recommended Boolean   @default(false)
+  completedAt DateTime?
+  completedBy String?
+  image       String?
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+}
+
+model QuestionAnswer {
+  id       String   @id @default(cuid())
+  spaceId  String
+  question String
+  category String?
+  userId   String
+  answer   String?  @db.Text
+  date     DateTime
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  user  User        @relation(fields: [userId], references: [id])
+}
+
+model CoupleBill {
+  id        String   @id @default(cuid())
+  spaceId   String
+  title     String
+  amount    Decimal
+  type      String
+  category  String
+  payerId   String
+  splitType String
+  date      DateTime
+  remark    String?
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  payer User        @relation("BillPayer", fields: [payerId], references: [id])
+}
+
+model MoodCheckin {
+  id      String   @id @default(cuid())
+  spaceId String
+  userId  String
+  mood    String
+  text    String?
+  date    DateTime
+
+  space CoupleSpace @relation(fields: [spaceId], references: [id])
+  user  User        @relation(fields: [userId], references: [id])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  nickname     String
+  roleId       String
+  status       String   @default("enabled")
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  role AdminRole @relation(fields: [roleId], references: [id])
+}
+
+model AdminRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions Json
+  createdAt   DateTime @default(now())
+
+  users AdminUser[]
+}
+
+model ReviewTask {
+  id         String   @id @default(cuid())
+  targetType String
+  targetId   String
+  content    String?  @db.Text
+  status     String   @default("pending")
+  risk       String   @default("low")
+  reason     String?
+  reviewerId String?
+  createdAt  DateTime @default(now())
+  reviewedAt DateTime?
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  targetType String
+  targetId   String
+  reporterId String
+  reason     String
+  status     String   @default("pending")
+  handledAt  DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  position  String
+  imageUrl  String
+  linkType  String?
+  linkValue String?
+  sort      Int      @default(0)
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  group     String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@unique([group, key])
+}
+
+model FileAsset {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  url       String
+  mime      String?
+  size      Int?
+  category  String?
+  usedBy    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model AiGenerationLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  spaceId   String?
+  scene     String
+  model     String
+  prompt    String?  @db.Text
+  output    String?  @db.Text
+  tokens    Int      @default(0)
+  status    String   @default("success")
+  createdAt DateTime @default(now())
+}

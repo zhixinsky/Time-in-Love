@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.hbuilderx/
+.vite/
+*.log
+*.local
+.env
+.env.*
+!.env.example
+!api/.env.example
+.DS_Store
+
+# 各子包构建产物
+mobile/dist/
+admin/dist/

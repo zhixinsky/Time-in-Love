@@ -1,0 +1,8 @@
+# 品牌图仅放云存储，勿提交到小程序工程（避免被打进 static）
+/ailogo.png
+/logo.png
+/static/love-bg.png
+/static/ailogo.png
+/static/logo.png
+/static/tab/ailogo.png
+/static/tab/logo.png

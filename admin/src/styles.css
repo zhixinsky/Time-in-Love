@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 326 100% 98%;
+  --foreground: 277 24% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 277 24% 16%;
+  --muted: 306 35% 94%;
+  --muted-foreground: 292 13% 49%;
+  --primary: 334 91% 67%;
+  --primary-foreground: 0 0% 100%;
+  --border: 318 42% 88%;
+}
+
+.dark {
+  --background: 266 30% 8%;
+  --foreground: 314 30% 94%;
+  --card: 267 28% 13%;
+  --card-foreground: 314 30% 94%;
+  --muted: 268 24% 19%;
+  --muted-foreground: 286 13% 70%;
+  --primary: 328 89% 70%;
+  --primary-foreground: 0 0% 100%;
+  --border: 267 22% 26%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: hsl(var(--foreground));
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 181, 216, 0.35), transparent 28%),
+    radial-gradient(circle at 80% 0%, rgba(185, 156, 255, 0.32), transparent 32%),
+    linear-gradient(135deg, #fff7fb 0%, #f9efff 44%, #fff6f8 100%);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at 18% 6%, rgba(255, 113, 172, 0.16), transparent 28%),
+    radial-gradient(circle at 84% 0%, rgba(135, 104, 255, 0.18), transparent 34%),
+    linear-gradient(135deg, #130d1b 0%, #191122 46%, #100b16 100%);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-white/60 bg-white/[0.58] shadow-glass backdrop-blur-2xl dark:border-white/10 dark:bg-white/[0.08];
+  }
+
+  .soft-card {
+    @apply glass-panel rounded-[28px];
+  }
+
+  .subtle-ring {
+    @apply ring-1 ring-white/55 dark:ring-white/10;
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
+      "path": "pages/diary/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
+      "path": "pages/diary/edit",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "记录心动瞬间",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
+      "path": "pages/bill/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
+      "path": "pages/ai/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "恋爱时光",
+    "navigationBarBackgroundColor": "#FFF4FA",
+    "backgroundColor": "#FFF4FA"
+  }
+}
