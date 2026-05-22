@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules
+dist
+admin/node_modules
+admin/dist
+mobile/node_modules
+mobile/dist
+api/node_modules
+api/.env
+api/*.log
+*.log
+.env
+.env.*
+README.md
+docs
