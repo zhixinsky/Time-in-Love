@@ -1,3 +1,5 @@
+import { config } from '../config/index.js'
+
 const FALLBACKS = [
   '看得出来，今天是和他一起度过的温暖又浪漫的一天呢～',
   '你们今天的小互动，都藏着很甜的默契呀。',
@@ -48,11 +50,80 @@ const generators = {
   }
 }
 
-export function generateAiContent({ type = 'advice', input = '' }) {
+function systemPrompt(type) {
+  const map = {
+    advice: '你是情侣恋爱记录小程序“星芽恋记”的温柔恋爱建议助手。给出具体、克制、不油腻的建议。',
+    loveWords: '你是擅长写中文情话的助手。输出温柔、真诚、少女感但不廉价的短文案。',
+    anniversary: '你是情侣纪念日文案助手。输出适合发给恋人的纪念日祝福，真诚、有画面感。',
+    moments: '你是恋爱日记总结助手。提炼用户输入中的心动瞬间，输出温柔总结。',
+    post: '你是小红书风格情侣朋友圈文案助手。输出简洁、自然、适合分享的文案。',
+    weekly: '你是情侣周报助手。根据输入生成甜蜜指数、关键词和下周建议。'
+  }
+  return map[type] || map.advice
+}
+
+function fallbackContent(type, input) {
   const fn = generators[type] || generators.advice
   return {
     type,
     result: fn(input),
+    provider: 'local-template',
     generatedAt: new Date().toISOString()
   }
+}
+
+async function callOpenAiCompatible({ type, input }) {
+  if (!config.ai.apiKey) return null
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), config.ai.timeoutMs)
+  try {
+    const response = await fetch(`${config.ai.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.ai.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: config.ai.model,
+        temperature: 0.78,
+        max_tokens: 500,
+        messages: [
+          { role: 'system', content: systemPrompt(type) },
+          {
+            role: 'user',
+            content: input || '请根据当前功能生成一段适合情侣恋爱记录小程序使用的内容。'
+          }
+        ]
+      }),
+      signal: controller.signal
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const err = new Error(data?.error?.message || data?.message || 'AI 生成失败')
+      err.status = response.status
+      throw err
+    }
+    const result = data?.choices?.[0]?.message?.content?.trim()
+    if (!result) return null
+    return {
+      type,
+      result,
+      provider: config.ai.provider,
+      model: config.ai.model,
+      generatedAt: new Date().toISOString()
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export async function generateAiContent({ type = 'advice', input = '' }) {
+  try {
+    const remote = await callOpenAiCompatible({ type, input })
+    if (remote) return remote
+  } catch (err) {
+    console.error('[ai-service] remote generate failed, fallback template', err.message)
+  }
+  return fallbackContent(type, input)
 }

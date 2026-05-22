@@ -35,6 +35,13 @@ export const config = {
     password: process.env.MYSQL_PASSWORD || '',
     database: process.env.MYSQL_DATABASE || 'love'
   },
+  ai: {
+    provider: process.env.AI_PROVIDER || 'xiaomi',
+    apiKey: process.env.XIAOMI_API_KEY || process.env.AI_API_KEY || '',
+    baseUrl: process.env.XIAOMI_AI_BASE_URL || process.env.AI_BASE_URL || 'https://api.mimo-v2.com/v1',
+    model: process.env.XIAOMI_AI_MODEL || process.env.AI_MODEL || 'mimo-v2-flash',
+    timeoutMs: Number(process.env.AI_TIMEOUT_MS || 20000)
+  },
   music: {
     cloudEnv: process.env.LOVE_MUSIC_CLOUD_ENV || process.env.WX_CLOUD_ENV_ID || 'prod-d0gd8tvq9c6e19eb3',
     /** 云托管注入：COS_BUCKET / COS_REGION */
