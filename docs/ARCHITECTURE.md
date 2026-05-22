@@ -45,7 +45,7 @@ Pinia store 渲染 UI              admin 管理端查询/运营
 ## 四、微信云托管部署（api）
 
 1. 微信开发者工具 → 云开发 → 云托管 → 新建服务
-2. 上传 `api/` 目录，使用根目录 `Dockerfile` 构建
+2. Git 构建：**仓库根目录** + **`/Dockerfile`**（详见 `docs/CLOUD_SETUP.md`）
 3. 服务监听端口 **80**（`container.config.json` 已配置）
 4. 获得公网域名后，填入 `mobile/src/config/index.js` 的 `prod` 地址
 5. 小程序后台配置 **request 合法域名** 为该域名

@@ -23,6 +23,10 @@ app.use(express.json({ limit: '2mb' }))
 app.use(morgan('dev'))
 app.use('/uploads', express.static(uploadsPath))
 
+app.get('/health', (_req, res) => {
+  res.status(200).json({ ok: true, service: 'time-in-love-api' })
+})
+
 app.get('/', (_req, res) => {
   res.json({ name: 'time-in-love-api', version: '0.1.0' })
 })

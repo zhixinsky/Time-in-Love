@@ -16,7 +16,14 @@
 ## 一、部署 API + Admin 到云托管
 
 1. 云托管控制台 → 环境 `prod-d0gd8tvq9c6e19eb3` → 服务名 **`express-op14`**（与 `mobile/src/config/index.js` 中 `WX_CLOUD_SERVICE` 一致）
-2. 上传代码：选择 GitHub 仓库根目录，使用根目录 `Dockerfile` 构建
+2. **Git 构建必须这样配**（配错会构建失败且运行日志为空）：
+
+| 配置项 | 正确值 | 错误示例 |
+|--------|--------|----------|
+| 代码 / 构建上下文 | **仓库根目录** `Time-in-Love` | 只选 `api/` 子目录 |
+| Dockerfile 路径 | **`/Dockerfile`**（根目录） | 用 `api/Dockerfile` 却选根目录上下文 |
+| 服务端口 | `80` | `3000` |
+
 3. 环境变量（控制台配置，不要写进 Git）：
 
 当前根目录 `Dockerfile` 会先构建 `admin/`，再把 `admin/dist` 复制进 API 容器。发布后访问路径：
@@ -54,6 +61,23 @@
 > 本地 `.env` 仍可用 `MYSQL_HOST` / `MYSQL_USER` 等别名，代码会自动兼容。
 
 4. 发布服务，记录 **公网访问域名**（可选）
+
+### 部署失败、看不到错误日志？
+
+| 阶段 | 去哪里看日志 |
+|------|----------------|
+| **镜像构建失败** | 云托管 → 服务 → **构建记录 / 持续集成**（不是「运行日志」） |
+| **容器启动失败** | **运行日志**，搜 `[api] starting` / `[api] listening` |
+| **探活失败** | 运行日志里是否有 `listening on 0.0.0.0:80`；访问 `/health` 应返回 `{"ok":true}` |
+
+常见原因：
+
+1. **Dockerfile 与代码目录不匹配**（最常见）：根目录 Dockerfile 必须配合**仓库根**构建。
+2. **旧版 Dockerfile 用 monorepo `npm install`**：在云端易超时/OOM，已改为 `admin/`、`api/` 独立安装。
+3. **启动时先连 MySQL 再监听端口**：旧版会探活失败；现已先 `listen` 再后台 `bootstrap`。
+4. **未绑定 MySQL**：可启动但日志为 `memory seed`；绑定后需 `MYSQL_DATABASE=love`。
+
+仅部署 API、不要 Admin 时：代码目录选 `api/`，Dockerfile 选 **`api/Dockerfile`**（不要用根目录 Dockerfile）。
 
 ---
 

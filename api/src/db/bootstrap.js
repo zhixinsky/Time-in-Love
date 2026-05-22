@@ -75,7 +75,8 @@ export async function bootstrapDatabase() {
     port: config.mysql.port,
     user: config.mysql.user,
     password: config.mysql.password,
-    multipleStatements: true
+    multipleStatements: true,
+    connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT_MS || 10000)
   })
 
   try {

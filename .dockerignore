@@ -2,10 +2,9 @@
 .gitignore
 node_modules
 dist
+mobile
 admin/node_modules
 admin/dist
-mobile/node_modules
-mobile/dist
 api/node_modules
 api/.env
 api/*.log
