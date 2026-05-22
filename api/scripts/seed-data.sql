@@ -22,7 +22,10 @@ INSERT IGNORE INTO moods (id, space_id, owner_label, avatar, mood_text, mood_dat
 INSERT IGNORE INTO bill_monthly (space_id, bill_month, expense, income) VALUES
 ('space_demo', DATE_FORMAT(CURDATE(), '%Y-%m'), 1314, 520);
 
-INSERT IGNORE INTO diaries (id, space_id, content, mood, weather, location, created_at) VALUES
-('d1', 'space_demo',
- '今天一起去看了日落，他的侧脸在夕阳下好温柔。走在海边吹着风，突然觉得能和他一起看很多很多次日落，真的是很幸福的事呀～',
- '很幸福', '晴 26℃', '海边', NOW());
+INSERT IGNORE INTO diaries (
+  id, space_id, user_id, content, mood, weather, location_name, love_day, diary_date, created_at, updated_at
+) VALUES (
+  'd1', 'space_demo', 'u_me',
+  '今天一起去看了日落，他的侧脸在夕阳下好温柔。走在海边吹着风，突然觉得能和他一起看很多很多次日落，真的是很幸福的事呀～',
+  '很幸福', '晴 26℃', '海边', 1, CURDATE(), NOW(), NOW()
+);

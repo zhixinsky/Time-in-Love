@@ -2,7 +2,7 @@ import { onAppHide, onAppShow } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { CLOUD_LOVE_BG } from '../config'
 import { DEFAULT_LOVE_MUSIC, musicApi } from '../services/music'
-import { resolveCloudFileUrl } from './cloud-file'
+import { resolveCloudFileUrl } from '../services/request'
 
 function readSession(key) {
   return uni.getStorageSync(key)
@@ -39,6 +39,9 @@ let leavingPage = false
 let pageHideDeferTimer = null
 let lastPersistAt = 0
 let lifecycleBound = false
+let playGeneration = 0
+let resumeInflight = null
+let resumeDebounceTimer = null
 
 const musicControlsVisible = ref(false)
 const isMusicPlaying = ref(false)
@@ -64,9 +67,13 @@ function getPersistedPlayTime(bgm) {
   return Math.max(0, cachedOfficialCurrentTime)
 }
 
+function sessionSrc() {
+  return currentItem?.src || ''
+}
+
 function persistPlayPositionNow() {
   const bgm = manager
-  const src = currentItem?.src || bgm?.src
+  const src = sessionSrc()
   const currentTime = getPersistedPlayTime(bgm)
   if (!src || currentTime <= 0) return
   const prev = readSession(SESSION_KEY)
@@ -83,7 +90,7 @@ function persistPlayPositionNow() {
 
 function saveSession({ resumeOnReturn = false } = {}) {
   const bgm = manager
-  const src = currentItem?.src || bgm?.src
+  const src = sessionSrc()
   if (!src) {
     clearSession(SESSION_KEY)
     return
@@ -181,24 +188,36 @@ function pickRandom(excludeSrc) {
 }
 
 async function playItem(item, { autoplay = true, startTime = 0 } = {}) {
+  const gen = ++playGeneration
   const bgm = ensureManager()
   if (!bgm || !item?.src) {
     showMusicToast({ title: '请在微信小程序中播放音乐', icon: 'none' })
     return
   }
+
   const next = item
   currentItem = next
   currentIndex = playlist.findIndex((x) => x.src === next.src)
   const seekAt = Math.max(0, startTime)
   pendingSeekAfterLoad = seekAt
 
-  let audioSrc = next.src
-  let coverUrl = next.coverImgUrl || CLOUD_LOVE_BG
+  let audioSrc = ''
+  let coverUrl = ''
   try {
-    audioSrc = await resolveCloudFileUrl(next.src)
+    audioSrc = await resolveCloudFileUrl(next.src, { audio: true })
+    if (gen !== playGeneration) return
     coverUrl = await resolveCloudFileUrl(next.coverImgUrl || CLOUD_LOVE_BG)
+    if (gen !== playGeneration) return
   } catch (e) {
+    if (gen !== playGeneration) return
     console.warn('[love-music] resolve cloud media failed', e)
+    showMusicToast({ title: '音乐暂时无法播放', icon: 'none' })
+    return
+  }
+
+  if (!audioSrc) {
+    showMusicToast({ title: '音乐暂时无法播放', icon: 'none' })
+    return
   }
 
   bgm.title = next.title || '恋爱时光'
@@ -207,51 +226,56 @@ async function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   bgm.coverImgUrl = coverUrl
   bgm.webUrl = '/pages/home/index'
 
-  const sameSrc = bgm.src === audioSrc || bgm.src === next.src
+  const sameResolved = bgm.src === audioSrc
   const liveAt = getManagerCurrentTime(bgm)
   const mustReloadForSeek = seekAt > 0 && liveAt < seekAt - 1
 
-  if (!sameSrc || mustReloadForSeek) {
+  if (!sameResolved || mustReloadForSeek) {
+    // 设置 src 会自动播放，勿再调 play()，否则触发 interrupted by new load
     bgm.startTime = seekAt
     bgm.src = audioSrc
     if (seekAt > 0) scheduleSeekRetries(bgm)
-    if (autoplay) {
-      try {
-        bgm.play()
-      } catch {
-        /* ignore */
-      }
+    if (!autoplay) {
+      setTimeout(() => {
+        try {
+          bgm.pause()
+        } catch {
+          /* ignore */
+        }
+        isMusicPlaying.value = false
+      }, 50)
+    } else {
+      isMusicPlaying.value = true
+      userWantsPlay = true
     }
   } else if (seekAt > 0) {
     bgm.startTime = seekAt
     flushPendingSeek(bgm)
     scheduleSeekRetries(bgm)
-    if (autoplay) {
+    if (autoplay && bgm.paused) {
       try {
         bgm.play()
       } catch {
         /* ignore */
       }
     }
-  } else if (autoplay) {
+    isMusicPlaying.value = autoplay && !bgm.paused
+    userWantsPlay = autoplay
+  } else if (autoplay && bgm.paused) {
     try {
       bgm.play()
     } catch {
       /* ignore */
     }
-  }
-
-  if (!autoplay) {
-    try {
-      bgm.pause()
-    } catch {
-      /* ignore */
-    }
-    isMusicPlaying.value = false
-  } else {
     isMusicPlaying.value = true
     userWantsPlay = true
+  } else if (!autoplay) {
+    isMusicPlaying.value = false
+  } else {
+    isMusicPlaying.value = !bgm.paused
+    userWantsPlay = true
   }
+
   saveSession({ resumeOnReturn: autoplay })
 }
 
@@ -295,24 +319,34 @@ async function loadPlaylist() {
 }
 
 async function resumeLoveMusic() {
-  await loadPlaylist()
-  const restored = restoreSession()
-  if (restored?.shouldPlay) {
-    playItem(restored.item, { autoplay: true, startTime: restored.startTime })
-    return
-  }
-  const bgm = manager
-  const stored = readSession(SESSION_KEY)
-  if (bgm?.src && stored?.src === bgm.src && userWantsPlay) {
-    const seekAt = Math.max(0, Number(stored.currentTime) || 0)
-    const item = playlist.find((x) => x.src === bgm.src) || currentItem
-    if (item && seekAt > 0) {
-      playItem(item, { autoplay: true, startTime: seekAt })
+  if (resumeInflight) return resumeInflight
+  resumeInflight = (async () => {
+    await loadPlaylist()
+    const restored = restoreSession()
+    if (restored?.shouldPlay) {
+      await playItem(restored.item, { autoplay: true, startTime: restored.startTime })
       return
     }
-  }
-  if (!bgm?.src && Array.isArray(playlist) && playlist.length && userWantsPlay) {
-    playItem(pickRandom(), { autoplay: true })
+    const bgm = manager
+    const stored = readSession(SESSION_KEY)
+    const storedItem = stored?.src
+      ? playlist.find((x) => x.src === stored.src) || currentItem
+      : null
+    if (bgm?.src && storedItem && userWantsPlay) {
+      const seekAt = Math.max(0, Number(stored.currentTime) || 0)
+      if (seekAt > 0) {
+        await playItem(storedItem, { autoplay: true, startTime: seekAt })
+        return
+      }
+    }
+    if (!bgm?.src && Array.isArray(playlist) && playlist.length && userWantsPlay) {
+      await playItem(pickRandom(), { autoplay: true })
+    }
+  })()
+  try {
+    await resumeInflight
+  } finally {
+    resumeInflight = null
   }
 }
 
@@ -328,10 +362,13 @@ function handlePageShow() {
   const bgm = manager || ensureManager()
   const savedAt = Math.max(0, Number(stored?.currentTime) || 0)
   const officialAt = bgm ? getManagerCurrentTime(bgm) : 0
+  const storedItem = stored?.src
+    ? playlist.find((x) => x.src === stored.src) || currentItem
+    : null
   if (
     bgm &&
-    stored?.src &&
-    bgm.src === stored.src &&
+    storedItem &&
+    currentItem?.src === stored.src &&
     bgm.paused === false &&
     savedAt > 0 &&
     officialAt >= savedAt - 2
@@ -341,9 +378,11 @@ function handlePageShow() {
     return
   }
 
-  setTimeout(() => {
+  if (resumeDebounceTimer) clearTimeout(resumeDebounceTimer)
+  resumeDebounceTimer = setTimeout(() => {
+    resumeDebounceTimer = null
     resumeLoveMusic()
-  }, 80)
+  }, 200)
 }
 
 function handleAppShow() {

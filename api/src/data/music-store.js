@@ -1,9 +1,8 @@
 import { createId } from '../utils/id.js'
+import { toCloudFileId } from '../utils/cloud-file-id.js'
 import { config } from '../config/index.js'
 
-const cloudEnv = config.music.cloudEnv
-const bucket = config.music.bucket
-const coverFileId = `cloud://${cloudEnv}.${bucket}/${config.music.coverKey}`
+const coverFileId = toCloudFileId(config.music.cloudEnv, config.music.bucket, config.music.coverKey)
 
 const state = {
   items: []

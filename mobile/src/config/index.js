@@ -42,9 +42,10 @@ export const USE_CLOUD_CONTAINER = !USE_LOCAL_API && !CLOUD_RUN_PUBLIC_BASE
 /** 无后端时是否仅用 Pinia mock */
 export const USE_MOCK = false
 
-/** 云存储桶（与云托管 COS_BUCKET 一致） */
+/** 云存储桶（与云托管 COS_BUCKET 一致，控制台 fileID 中间段） */
 export const COS_BUCKET = '7072-prod-d0gd8tvq9c6e19eb3-1435802081'
 
+/** 云存储 fileID：cloud://环境ID.存储桶ID/路径（与控制台上传返回的 CloudID 一致） */
 export function cloudAsset(key) {
   const path = String(key || '').replace(/^\//, '')
   return `cloud://${WX_CLOUD_ENV_ID}.${COS_BUCKET}/${path}`

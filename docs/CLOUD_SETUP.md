@@ -61,6 +61,8 @@
 
 > MySQL 使用云托管注入的 `MYSQL_ADDRESS`（内网 `ip:3306`），仅云托管内 `api` 服务可访问；本机 `npm run db:init` 通常会失败，属正常。
 
+**API 启动时会自动执行** `scripts/schema.sql` 等脚本，创建 `love` 库与表（日志出现 `[db-bootstrap] ready: love` 即成功）。若日志仍是 `Unknown database 'love'`，请确认服务环境变量已配置 **`MYSQL_DATABASE=love`**，并重新发布 `express-op14`。
+
 ### 方式 A：控制台 SQL 执行（推荐）
 
 云托管 → 数据库 → MySQL → **SQL 执行**，依次粘贴运行：
@@ -169,7 +171,7 @@ GET /api/v1/admin/love-background-music
 
 ### 云存储静态图（勿打进小程序包）
 
-以下文件应只存在于云存储桶根目录，由 `mobile/src/config/index.js` 的 `cloudAsset()` 引用：
+以下文件应只存在于云存储桶根目录，由 `mobile/src/config/index.js` 的 `cloudAsset()` 引用（微信云托管 CloudID 格式 `cloud://环境ID.存储桶ID/路径`，与控制台复制的一致，例如 `cloud://prod-d0gd8tvq9c6e19eb3.7072-prod-d0gd8tvq9c6e19eb3-1435802081/love-bg.png`）：
 
 | 文件 | 用途 |
 |------|------|

@@ -1,5 +1,6 @@
 import http from 'http'
 import { config } from '../config/index.js'
+import { toCloudFileId } from '../utils/cloud-file-id.js'
 
 const AUDIO_EXTENSIONS = new Set(['.mp3', '.m4a', '.aac', '.wav'])
 
@@ -118,9 +119,7 @@ async function listCosObjects(prefix) {
 /** 扫描云存储 music/ 目录，返回待导入行 */
 export async function scanCloudMusic({ prefix, enabled = true, loopEnabled = true } = {}) {
   const cleanPrefix = normalizePrefix(prefix || config.music.prefix)
-  const cloudEnv = config.music.cloudEnv
-  const bucket = config.music.bucket
-  const coverImgUrl = `cloud://${cloudEnv}.${bucket}/${config.music.coverKey}`
+  const coverImgUrl = toCloudFileId(config.music.cloudEnv, config.music.bucket, config.music.coverKey)
 
   const objects = await listCosObjects(cleanPrefix)
   const musicObjects = objects.filter((item) => isAudioKey(item.key))
@@ -132,7 +131,7 @@ export async function scanCloudMusic({ prefix, enabled = true, loopEnabled = tru
       title: titleFromKey(item.key),
       singer: 'AI星芽',
       epname: '星芽恋记情侣空间',
-      fileId: `cloud://${cloudEnv}.${bucket}/${item.key}`,
+      fileId: toCloudFileId(config.music.cloudEnv, config.music.bucket, item.key),
       coverImgUrl,
       enabled,
       loopEnabled,

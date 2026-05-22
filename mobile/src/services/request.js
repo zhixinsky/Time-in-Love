@@ -1,6 +1,7 @@
 import {
   API_BASE_URL,
   API_PREFIX,
+  COS_BUCKET,
   USE_CLOUD_CONTAINER,
   WX_CLOUD_ENV_ID,
   WX_CLOUD_SERVICE,
@@ -152,6 +153,147 @@ export function resolveMediaUrl(url) {
   if (/^https?:\/\//i.test(url)) return url
   if (url.startsWith('/')) return `${API_BASE_URL}${url}`
   return url
+}
+
+/** cloud:// → 本地临时路径或 HTTPS 签名（须放在 services/request，避免 Skyline 懒加载未注册 utils 子模块） */
+const cloudFileCache = new Map()
+
+function rememberCloudFile(fileId, url) {
+  if (url) cloudFileCache.set(fileId, url)
+  return url
+}
+
+function extractCloudObjectPath(fileId) {
+  const id = String(fileId || '').trim()
+  if (!id.startsWith('cloud://')) return ''
+  const rest = id.slice('cloud://'.length)
+  const slash = rest.indexOf('/')
+  if (slash < 0) return ''
+  return rest.slice(slash + 1)
+}
+
+/** 同一文件可能以短/长 CloudID 引用，解析时依次尝试 */
+function cloudFileIdVariants(fileId) {
+  const id = String(fileId || '').trim()
+  if (!id.startsWith('cloud://')) return [id]
+  const path = extractCloudObjectPath(id)
+  if (!path) return [id]
+  const full = `cloud://${WX_CLOUD_ENV_ID}.${COS_BUCKET}/${path}`
+  const short = `cloud://${WX_CLOUD_ENV_ID}/${path}`
+  return [...new Set([id, full, short])]
+}
+
+function cloudApiConfig() {
+  return { env: WX_CLOUD_ENV_ID }
+}
+
+function fetchCloudTempUrl(fileId) {
+  return new Promise((resolve, reject) => {
+    wx.cloud.getTempFileURL({
+      config: cloudApiConfig(),
+      fileList: [{ fileID: fileId, maxAge: 7200 }],
+      success(res) {
+        const item = res?.fileList?.[0]
+        if (item?.status === 0 && item?.tempFileURL) {
+          resolve(rememberCloudFile(fileId, item.tempFileURL))
+          return
+        }
+        reject(new Error(item?.errMsg || 'getTempFileURL failed'))
+      },
+      fail: reject
+    })
+  })
+}
+
+function downloadCloudToLocal(fileId) {
+  return new Promise((resolve, reject) => {
+    wx.cloud.downloadFile({
+      config: cloudApiConfig(),
+      fileID: fileId,
+      success(res) {
+        if (res?.tempFilePath) {
+          resolve(rememberCloudFile(fileId, res.tempFilePath))
+          return
+        }
+        reject(new Error('downloadFile: empty tempFilePath'))
+      },
+      fail: reject
+    })
+  })
+}
+
+async function resolveCloudFileIdOnce(fileId, audio) {
+  const chain = audio
+    ? () => fetchCloudTempUrl(fileId).catch(() => downloadCloudToLocal(fileId))
+    : () => downloadCloudToLocal(fileId).catch(() => fetchCloudTempUrl(fileId))
+
+  const url = await chain()
+  if (!isUsableCloudMediaUrl(url)) {
+    throw new Error('invalid cloud media url')
+  }
+  return url
+}
+
+function isUsableCloudMediaUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  if (url.startsWith('cloud://')) return false
+  if (url.includes('.tcb.qcloud.la/') && !url.includes('?')) return false
+  return (
+    url.startsWith('https://') ||
+    url.startsWith('http://') ||
+    url.startsWith('wxfile://') ||
+    url.startsWith('file://')
+  )
+}
+
+/**
+ * @param {string} fileId
+ * @param {{ audio?: boolean }} [options] 音频优先 getTempFileURL（HTTPS 签名）
+ */
+export function resolveCloudFileUrl(fileId, options = {}) {
+  const id = String(fileId || '').trim()
+  if (!id) return Promise.resolve('')
+  if (!id.startsWith('cloud://')) return Promise.resolve(id)
+
+  for (const key of cloudFileIdVariants(id)) {
+    if (cloudFileCache.has(key)) return Promise.resolve(cloudFileCache.get(key))
+  }
+
+  const { audio = false } = options
+
+  return new Promise((resolve, reject) => {
+    // #ifdef MP-WEIXIN
+    ensureCloudContainer()
+    if (typeof wx === 'undefined' || !wx.cloud) {
+      reject(new Error('wx.cloud 不可用'))
+      return
+    }
+
+    const variants = cloudFileIdVariants(id)
+    ;(async () => {
+      let lastErr = null
+      for (const candidate of variants) {
+        if (cloudFileCache.has(candidate)) {
+          resolve(cloudFileCache.get(candidate))
+          return
+        }
+        try {
+          const url = await resolveCloudFileIdOnce(candidate, audio)
+          variants.forEach((v) => rememberCloudFile(v, url))
+          resolve(url)
+          return
+        } catch (e) {
+          lastErr = e
+          console.warn('[cloud] resolve failed', candidate, e?.message || e)
+        }
+      }
+      reject(lastErr || new Error('cloud file resolve failed'))
+    })()
+    // #endif
+    // #ifndef MP-WEIXIN
+    resolve(id)
+    // #endif
+  })
 }
 
 export function uploadFile(path, filePath, formData = {}) {

@@ -175,7 +175,6 @@ const {
 
 onLoad(() => {
   love.loadDashboard()
-  setTimeout(() => onPageShow(), 120)
 })
 
 onShow(() => {
