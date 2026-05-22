@@ -41,6 +41,7 @@ import {
 import { uploadImageHandler, uploadVideoHandler } from '../controllers/upload-controller.js'
 import { loopListHandler } from '../controllers/music-controller.js'
 import { createBillHandler, deleteBillHandler, listBillsHandler } from '../controllers/bill-controller.js'
+import { listAlbumMediaHandler } from '../controllers/album-controller.js'
 import {
   adminCreateMusicHandler,
   adminDeleteMusicHandler,
@@ -133,6 +134,11 @@ billRouter.get('/', asyncHandler(listBillsHandler))
 billRouter.post('/', asyncHandler(createBillHandler))
 billRouter.delete('/:id', asyncHandler(deleteBillHandler))
 apiRouter.use('/bills', billRouter)
+
+const albumRouter = Router()
+albumRouter.use(requireAuth)
+albumRouter.get('/media', asyncHandler(listAlbumMediaHandler))
+apiRouter.use('/albums', albumRouter)
 
 const uploadRouter = Router()
 uploadRouter.use(requireAuth)

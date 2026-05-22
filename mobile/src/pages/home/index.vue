@@ -198,7 +198,7 @@ const coupleDisplay = computed(() => [
 const entries = [
   { label: '心动日记', icon: 'heart', url: '/pages/diary/index' },
   { label: '纪念日', icon: 'calendar', url: '/pages/anniversary/index' },
-  { label: '时光相册', icon: 'album' },
+  { label: '时光相册', icon: 'album', url: '/pages/album/index' },
   { label: '恋爱清单', icon: 'checklist' },
   { label: '甜蜜问答', icon: 'message-heart' }
 ]

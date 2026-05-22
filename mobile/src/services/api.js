@@ -44,6 +44,15 @@ export const api = {
 
   deleteBill: (id) => request(`/bills/${id}`, { method: 'DELETE' }),
 
+  listAlbumMedia: (params = {}) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') search.set(key, String(value))
+    })
+    const qs = search.toString()
+    return request(`/albums/media${qs ? `?${qs}` : ''}`)
+  },
+
   getLatestDiary: (spaceId) => request(`/spaces/${spaceId}/diaries/latest`),
 
   login: (code) => request('/auth/wechat-login', { method: 'POST', data: { code } }),

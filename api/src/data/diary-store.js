@@ -280,3 +280,38 @@ export function saveAiSummary(spaceId, userId, id, summary) {
   diary.updatedAt = new Date().toISOString()
   return getDiaryById(spaceId, userId, id)
 }
+
+export function getAlbumMedia(spaceId, userId, page = 1, pageSize = 30) {
+  const visibleDiaries = activeDiaries(spaceId).filter((d) => canView(d, userId))
+  const diaryMap = new Map(visibleDiaries.map((diary) => [diary.id, diary]))
+  const list = state.media
+    .filter((item) => diaryMap.has(item.diaryId))
+    .map((item) => {
+      const diary = diaryMap.get(item.diaryId)
+      return {
+        id: item.id,
+        diaryId: item.diaryId,
+        type: item.type,
+        url: item.url,
+        coverUrl: item.coverUrl || item.url,
+        duration: item.duration || 0,
+        date: diary.diaryDate,
+        mood: diary.mood,
+        locationName: diary.locationName || '',
+        contentPreview: preview(diary.content, 32),
+        createdAt: item.createdAt || diary.createdAt
+      }
+    })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+  const total = list.length
+  const start = (Number(page) - 1) * Number(pageSize)
+  return {
+    total,
+    list: list.slice(start, start + Number(pageSize)),
+    stats: {
+      images: list.filter((item) => item.type === 'image').length,
+      videos: list.filter((item) => item.type === 'video').length
+    }
+  }
+}
