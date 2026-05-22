@@ -6,15 +6,15 @@ import {
 } from '../services/admin-console-service.js'
 
 export async function adminDashboardHandler(_req, res) {
-  res.json({ code: 0, data: getAdminDashboard() })
+  res.json({ code: 0, data: await getAdminDashboard() })
 }
 
 export async function adminResourceListHandler(req, res) {
-  res.json({ code: 0, data: listAdminResource(req.params.resource, req.query) })
+  res.json({ code: 0, data: await listAdminResource(req.params.resource, req.query) })
 }
 
 export async function adminReviewQueueHandler(req, res) {
-  res.json({ code: 0, data: getReviewQueue(req.query) })
+  res.json({ code: 0, data: await getReviewQueue(req.query) })
 }
 
 export async function adminReviewBatchHandler(req, res) {
@@ -31,14 +31,14 @@ export async function adminReviewBatchHandler(req, res) {
 }
 
 export async function adminConfigGetHandler(_req, res) {
-  res.json({ code: 0, data: getSystemConfig() })
+  res.json({ code: 0, data: await getSystemConfig() })
 }
 
 export async function adminConfigUpdateHandler(req, res) {
   res.json({
     code: 0,
     data: {
-      ...getSystemConfig(),
+      ...(await getSystemConfig()),
       ...req.body,
       updatedAt: new Date().toISOString()
     }

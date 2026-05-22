@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Bell, LogOut, Menu, Moon, Search, Sun, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { menu } from '../data/adminData'
+import { menuGroups } from '../data/adminData'
 import { useAdminStore } from '../store/useAdminStore'
 import { Button, Input } from './ui'
 import { cn } from '../lib/utils'
@@ -18,27 +18,34 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const nav = useMemo(
     () => (
-      <nav className="space-y-1">
-        {menu.map((item) => {
-          const Icon = item.icon
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  'group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition',
-                  'hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10',
-                  isActive && 'bg-white/75 text-foreground shadow-sm dark:bg-white/12'
+      <nav className="space-y-5">
+        {menuGroups.map((group) => (
+          <div key={group.label}>
+            <p className="mb-2 px-3 text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground/70">{group.label}</p>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition',
+                        'hover:bg-white/55 hover:text-foreground dark:hover:bg-white/10',
+                        isActive && 'bg-white/75 text-foreground shadow-sm dark:bg-white/12'
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </NavLink>
                 )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
-            </NavLink>
-          )
-        })}
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
     ),
     []

@@ -1,13 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Clock, Crown, Sparkles } from 'lucide-react'
-import { activities, dashboardStats } from '../data/adminData'
+import { ArrowUpRight, Clock, Crown, Heart, Image, NotebookPen, Sparkles, Users } from 'lucide-react'
 import { formatNumber } from '../lib/utils'
-import { Badge, Button, Card, PageHeader, StatusDot } from '../components/ui'
+import { Badge, Button, Card, EmptyState, PageHeader, StatusDot } from '../components/ui'
 import { DashboardPayload, getDashboard } from '../api/admin'
 
-const trend = [28, 34, 30, 46, 52, 48, 68, 74, 66, 82, 96, 108]
-const heat = Array.from({ length: 42 }, (_, index) => [15, 28, 44, 62, 86][(index * 7 + 3) % 5])
+const heat = Array.from({ length: 42 }, () => 0)
+const statDefs = [
+  { label: '今日新增用户', key: 'users', icon: Users },
+  { label: '今日新增情侣空间', key: 'spaces', icon: Heart },
+  { label: '今日发布日记', key: 'diaries', icon: NotebookPen },
+  { label: '今日上传图片', key: 'images', icon: Image },
+  { label: '今日 AI 调用次数', key: 'aiCalls', icon: Sparkles }
+] as const
 
 export function DashboardPage() {
   const [remote, setRemote] = useState<DashboardPayload | null>(null)
@@ -19,29 +24,18 @@ export function DashboardPage() {
   }, [])
 
   const stats = useMemo(() => {
-    if (!remote) return dashboardStats
-    return dashboardStats.map((item) => {
-      const map: Record<string, number> = {
-        今日新增用户: remote.today.users,
-        今日新增情侣空间: remote.today.spaces,
-        今日日记发布: remote.today.diaries,
-        今日发布日记: remote.today.diaries,
-        今日上传图片: remote.today.images,
-        '今日 AI 调用次数': remote.today.aiCalls
-      }
-      return { ...item, value: map[item.label] ?? item.value }
-    })
+    return statDefs.map((item) => ({ ...item, value: remote?.today?.[item.key] ?? 0 }))
   }, [remote])
 
-  const trendData = remote?.growth?.length ? remote.growth : trend
+  const trendData = remote?.growth || []
   const recentActivities = remote?.activities?.length
     ? remote.activities.map((item) => ({
         title: item.title,
         meta: new Date(item.createdAt).toLocaleString('zh-CN'),
         type: item.type === 'report' ? '举报' : item.type === 'ai' ? 'AI' : item.type === 'space' ? '空间' : '日记'
       }))
-    : activities
-  const activeCouples = remote?.activeCouples?.length ? remote.activeCouples : ['海边日落', '草莓牛奶', '月亮邮局', '一起去旅行', '南风与星']
+    : []
+  const activeCouples = remote?.activeCouples || []
 
   return (
     <div>
@@ -63,8 +57,8 @@ export function DashboardPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">{stat.label}</p>
                     <p className="mt-3 text-3xl font-black">{formatNumber(stat.value)}</p>
-                    <Badge className="mt-4" tone="green">
-                      {stat.trend}
+                    <Badge className="mt-4" tone={stat.value ? 'green' : 'gray'}>
+                      实时
                     </Badge>
                   </div>
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/65 text-pink-500 dark:bg-white/10">
@@ -93,7 +87,7 @@ export function DashboardPage() {
             </div>
           </div>
           <div className="flex h-64 items-end gap-3 rounded-[24px] bg-white/35 p-5 dark:bg-white/5">
-            {trendData.map((value, index) => (
+            {(trendData.length ? trendData : [0, 0, 0, 0, 0, 0, 0]).map((value, index) => (
               <div key={index} className="flex flex-1 flex-col items-center gap-2">
                 <motion.div
                   initial={{ height: 0 }}
@@ -126,9 +120,9 @@ export function DashboardPage() {
           </div>
           <div className="mt-5 grid grid-cols-3 gap-3">
             {[
-              ['AI小记', remote?.ai.diarySummary?.toLocaleString() || '8,240'],
-              ['AI聊天', remote?.ai.chat?.toLocaleString() || '11,680'],
-              ['情话生成', remote?.ai.loveLetter?.toLocaleString() || '1,260']
+                ['AI小记', remote?.ai.diarySummary?.toLocaleString() || '0'],
+                ['AI聊天', remote?.ai.chat?.toLocaleString() || '0'],
+                ['情话生成', remote?.ai.loveLetter?.toLocaleString() || '0']
             ].map(([label, value]) => (
               <div key={label} className="rounded-3xl bg-white/45 p-4 dark:bg-white/6">
                 <p className="text-xs text-muted-foreground">{label}</p>
@@ -148,7 +142,7 @@ export function DashboardPage() {
             </Button>
           </div>
           <div className="space-y-3">
-            {activeCouples.map((name, index) => (
+            {activeCouples.length ? activeCouples.map((name, index) => (
               <div key={name} className="flex items-center justify-between rounded-3xl bg-white/45 p-3 dark:bg-white/6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-300 to-violet-300 text-white">
@@ -161,7 +155,7 @@ export function DashboardPage() {
                 </div>
                 <Badge tone="violet">{980 - index * 86} 分</Badge>
               </div>
-            ))}
+            )) : <EmptyState title="暂无活跃空间数据" description="有情侣空间产生真实活跃数据后会显示在这里。" />}
           </div>
         </Card>
 
@@ -171,7 +165,7 @@ export function DashboardPage() {
             <Clock className="h-5 w-5 text-muted-foreground" />
           </div>
           <div className="space-y-3">
-            {recentActivities.map((item) => (
+            {recentActivities.length ? recentActivities.map((item) => (
               <div key={item.title} className="flex items-center justify-between rounded-3xl bg-white/45 p-4 dark:bg-white/6">
                 <div className="flex items-center gap-3">
                   <StatusDot tone={item.type === '举报' ? 'red' : item.type === 'AI' ? 'pink' : 'green'} />
@@ -182,7 +176,7 @@ export function DashboardPage() {
                 </div>
                 <Badge tone={item.type === '举报' ? 'red' : 'gray'}>{item.type}</Badge>
               </div>
-            ))}
+            )) : <EmptyState title="暂无最近动态" description="日记、空间、AI 等事件产生后会显示在这里。" />}
           </div>
         </Card>
       </div>

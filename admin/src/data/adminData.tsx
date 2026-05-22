@@ -36,26 +36,53 @@ export type AdminModule = {
   actions: string[]
 }
 
-export const menu = [
-  { path: '/', label: '仪表盘', icon: Home },
-  { path: '/users', label: '用户管理', icon: Users },
-  { path: '/spaces', label: '情侣空间', icon: Heart },
-  { path: '/diaries', label: '心动日记', icon: NotebookPen },
-  { path: '/anniversaries', label: '纪念日', icon: CalendarHeart },
-  { path: '/albums', label: '时光相册', icon: Album },
-  { path: '/todos', label: '恋爱清单', icon: ListChecks },
-  { path: '/questions', label: '甜蜜问答', icon: MessageCircleHeart },
-  { path: '/bills', label: '情侣账本', icon: WalletCards },
-  { path: '/ai', label: 'AI星芽', icon: Bot },
-  { path: '/review', label: '内容审核', icon: ShieldAlert },
-  { path: '/reports', label: '举报管理', icon: Flag },
-  { path: '/banners', label: 'Banner管理', icon: Image },
-  { path: '/settings', label: '系统配置', icon: Settings },
-  { path: '/files', label: '文件资源库', icon: Gift },
-  { path: '/notifications', label: '消息通知', icon: Bell },
-  { path: '/analytics', label: '数据统计', icon: BarChart3 },
-  { path: '/admins', label: '管理员权限', icon: LockKeyhole }
+export const menuGroups = [
+  {
+    label: '总览',
+    items: [
+      { path: '/', label: '仪表盘', icon: Home },
+      { path: '/analytics', label: '数据统计', icon: BarChart3 }
+    ]
+  },
+  {
+    label: '用户与空间',
+    items: [
+      { path: '/users', label: '用户管理', icon: Users },
+      { path: '/spaces', label: '情侣空间', icon: Heart }
+    ]
+  },
+  {
+    label: '内容管理',
+    items: [
+      { path: '/diaries', label: '心动日记', icon: NotebookPen },
+      { path: '/anniversaries', label: '纪念日', icon: CalendarHeart },
+      { path: '/albums', label: '时光相册', icon: Album },
+      { path: '/todos', label: '恋爱清单', icon: ListChecks },
+      { path: '/questions', label: '甜蜜问答', icon: MessageCircleHeart },
+      { path: '/bills', label: '情侣账本', icon: WalletCards }
+    ]
+  },
+  {
+    label: '运营与安全',
+    items: [
+      { path: '/ai', label: 'AI星芽', icon: Bot },
+      { path: '/review', label: '内容审核', icon: ShieldAlert },
+      { path: '/reports', label: '举报管理', icon: Flag },
+      { path: '/banners', label: 'Banner管理', icon: Image },
+      { path: '/files', label: '文件资源库', icon: Gift },
+      { path: '/notifications', label: '消息通知', icon: Bell }
+    ]
+  },
+  {
+    label: '系统',
+    items: [
+      { path: '/settings', label: '系统配置', icon: Settings },
+      { path: '/admins', label: '管理员权限', icon: LockKeyhole }
+    ]
+  }
 ]
+
+export const menu = menuGroups.flatMap((group) => group.items)
 
 const baseRows = [
   ['星芽用户', '恋爱时光', '2026-05-22 09:30', '正常', '精选'],

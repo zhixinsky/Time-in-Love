@@ -99,3 +99,12 @@ export function StatusDot({ tone = 'green' }: { tone?: 'green' | 'amber' | 'red'
   }
   return <span className={cn('inline-block h-2 w-2 rounded-full shadow-[0_0_16px_currentColor]', colors[tone])} />
 }
+
+export function EmptyState({ title, description }: { title: string; description?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-white/60 bg-white/35 px-6 py-10 text-center dark:border-white/10 dark:bg-white/5">
+      <p className="text-sm font-black text-foreground">{title}</p>
+      {description && <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{description}</p>}
+    </div>
+  )
+}

@@ -1,8 +1,15 @@
 import { Check, X } from 'lucide-react'
-import { reviewItems } from '../data/adminData'
-import { Badge, Button, Card, PageHeader, StatusDot } from '../components/ui'
+import { useEffect, useState } from 'react'
+import { getReviewQueue, ReviewQueuePayload } from '../api/admin'
+import { Badge, Button, Card, EmptyState, PageHeader, StatusDot } from '../components/ui'
 
 export function ReviewPage() {
+  const [queue, setQueue] = useState<ReviewQueuePayload>({ list: [], summary: { pending: 0, approved: 0, rejected: 0 } })
+
+  useEffect(() => {
+    getReviewQueue().then(setQueue).catch(() => setQueue({ list: [], summary: { pending: 0, approved: 0, rejected: 0 } }))
+  }, [])
+
   return (
     <div>
       <PageHeader
@@ -20,7 +27,7 @@ export function ReviewPage() {
         {['待审核', '已通过', '已拒绝'].map((status, index) => (
           <Card key={status}>
             <p className="text-sm text-muted-foreground">{status}</p>
-            <p className="mt-3 text-3xl font-black">{[248, 12040, 86][index]}</p>
+            <p className="mt-3 text-3xl font-black">{[queue.summary.pending, queue.summary.approved, queue.summary.rejected][index]}</p>
             <Badge className="mt-4" tone={index === 0 ? 'amber' : index === 1 ? 'green' : 'red'}>
               今日
             </Badge>
@@ -29,7 +36,7 @@ export function ReviewPage() {
       </div>
       <Card className="mt-5">
         <div className="space-y-3">
-          {reviewItems.map((item) => (
+          {queue.list.length ? queue.list.map((item) => (
             <div key={item.id} className="grid gap-3 rounded-[24px] bg-white/45 p-4 dark:bg-white/6 lg:grid-cols-[120px_1fr_120px_120px_180px] lg:items-center">
               <Badge tone="gray">{item.id}</Badge>
               <div>
@@ -46,7 +53,7 @@ export function ReviewPage() {
                 <Button variant="danger" className="h-9">拒绝</Button>
               </div>
             </div>
-          ))}
+          )) : <EmptyState title="暂无审核任务" description="接入内容审核队列后，待处理内容会显示在这里。" />}
         </div>
       </Card>
     </div>

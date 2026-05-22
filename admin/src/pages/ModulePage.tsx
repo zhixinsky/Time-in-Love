@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import { AdminModule } from '../data/adminData'
-import { Badge, Button, Card, Input, PageHeader, StatusDot } from '../components/ui'
+import { Badge, Button, Card, EmptyState, Input, PageHeader, StatusDot } from '../components/ui'
 import { listResource, ResourceListPayload } from '../api/admin'
 
 export function ModulePage({ module }: { module: AdminModule }) {
@@ -28,8 +28,8 @@ export function ModulePage({ module }: { module: AdminModule }) {
         状态: item.status || item.状态 || '-',
         标记: item.tag || item.标记 || '-'
       }))
-    : module.rows
-  const total = remote?.pagination.total || 128
+    : []
+  const total = remote?.pagination.total || 0
   const currentPage = remote?.pagination.page || page
   const canPrev = currentPage > 1
   const canNext = currentPage * (remote?.pagination.pageSize || 20) < total
@@ -51,7 +51,11 @@ export function ModulePage({ module }: { module: AdminModule }) {
       />
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
-        {module.metrics.map((metric) => (
+        {[
+          { label: '总记录', value: String(total), trend: '实时' },
+          { label: '当前页', value: String(rows.length), trend: `第 ${currentPage} 页` },
+          { label: '数据来源', value: remote ? 'MySQL' : '未连接', trend: remote ? '接口正常' : '暂无数据' }
+        ].map((metric) => (
           <Card key={metric.label}>
             <div className="flex items-start justify-between">
               <div>
@@ -98,7 +102,7 @@ export function ModulePage({ module }: { module: AdminModule }) {
               <div key={column}>{column}</div>
             ))}
           </div>
-          {rows.map((row, index) => (
+          {rows.length ? rows.map((row, index) => (
             <div
               key={`${row.名称}-${index}`}
               className="grid min-w-[820px] grid-cols-6 items-center border-b border-white/35 px-5 py-4 text-sm last:border-b-0 dark:border-white/8"
@@ -118,7 +122,11 @@ export function ModulePage({ module }: { module: AdminModule }) {
                 </div>
               ))}
             </div>
-          ))}
+          )) : (
+            <div className="min-w-[820px] px-5 py-10">
+              <EmptyState title="暂无真实数据" description="当前模块还没有可展示的数据，或数据库表尚未初始化。" />
+            </div>
+          )}
         </div>
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

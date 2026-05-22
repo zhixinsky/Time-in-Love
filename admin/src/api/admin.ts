@@ -108,8 +108,17 @@ export type ReviewTask = {
   risk: string
 }
 
+export type ReviewQueuePayload = {
+  list: ReviewTask[]
+  summary: {
+    pending: number
+    approved: number
+    rejected: number
+  }
+}
+
 export function getReviewQueue(status?: string) {
-  return adminRequest<ReviewTask[]>(`/review/queue${status ? `?status=${encodeURIComponent(status)}` : ''}`)
+  return adminRequest<ReviewQueuePayload>(`/review/queue${status ? `?status=${encodeURIComponent(status)}` : ''}`)
 }
 
 export function batchReview(ids: string[], action: 'approve' | 'reject', reason = '') {
