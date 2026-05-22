@@ -99,6 +99,28 @@ export function resolveMediaUrl(url) {
 }
 
 export function uploadFile(path, filePath, formData = {}) {
+  // #ifdef MP-WEIXIN
+  if (USE_CLOUD_CONTAINER && typeof wx !== 'undefined' && wx.cloud) {
+    const ext = String(filePath || '').split('.').pop() || (path.includes('video') ? 'mp4' : 'jpg')
+    const folder = path.includes('video') ? 'uploads/videos' : 'uploads/images'
+    const cloudPath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    return new Promise((resolve, reject) => {
+      wx.cloud.uploadFile({
+        cloudPath,
+        filePath,
+        success(res) {
+          resolve({
+            url: res.fileID,
+            coverUrl: res.fileID,
+            duration: Number(formData.duration || 0)
+          })
+        },
+        fail: reject
+      })
+    })
+  }
+  // #endif
+
   const url = `${API_BASE_URL}${API_PREFIX}${path}`
   return new Promise((resolve, reject) => {
     uni.uploadFile({

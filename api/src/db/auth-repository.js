@@ -60,8 +60,8 @@ export async function createDefaultSpaceForUser(userId) {
   const id = createId('space')
   const joinedAt = todayYmd()
   await dbExecute(
-    `INSERT INTO spaces (id, name, subtitle, first_joined_at, love_start_date, couple_photo)
-     VALUES (?, '恋爱时光', '记录我们的心动瞬间', ?, ?, '')`,
+    `INSERT INTO spaces (id, name, subtitle, first_joined_at, love_start_date, couple_photo, invite_code)
+     VALUES (?, '恋爱时光', '记录我们的心动瞬间', ?, ?, '', '')`,
     [id, joinedAt, joinedAt]
   )
   await dbExecute('INSERT INTO space_members (space_id, user_id) VALUES (?, ?)', [id, userId])

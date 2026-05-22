@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import authApi, { getStoredAuth } from '../services/auth'
-import { AUTH_SPACE_KEY } from '../config'
+import { AUTH_SPACE_KEY, AUTH_TOKEN_KEY } from '../config'
 
 export const useAuthStore = defineStore('auth', () => {
   const stored = getStoredAuth()
@@ -34,6 +34,15 @@ export const useAuthStore = defineStore('auth', () => {
     uni.setStorageSync(AUTH_SPACE_KEY, nextSpace)
   }
 
+  function applySession(data) {
+    if (data.token) {
+      token.value = data.token
+      uni.setStorageSync(AUTH_TOKEN_KEY, data.token)
+    }
+    if (data.space) syncSpace(data.space)
+    if (data.user) user.value = data.user
+  }
+
   return {
     token,
     user,
@@ -41,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
     loggingIn,
     login,
     ensureLogin,
-    syncSpace
+    syncSpace,
+    applySession
   }
 })

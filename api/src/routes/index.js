@@ -10,11 +10,15 @@ import {
   adminOverviewHandler
 } from '../controllers/admin-controller.js'
 import {
+  createInviteHandler,
+  createSpaceHandler,
   getCurrentDashboardHandler,
   getCurrentSpaceHandler,
   getDashboardHandler,
   getSpaceHandler,
-  listSpacesHandler
+  joinSpaceHandler,
+  listSpacesHandler,
+  updateCurrentSpaceHandler
 } from '../controllers/space-controller.js'
 import { getDashboard } from '../services/space-service.js'
 import { config } from '../config/index.js'
@@ -70,8 +74,12 @@ apiRouter.get('/auth/me', requireAuth, asyncHandler(miniMeHandler))
 
 // —— 情侣空间（小程序） ——
 apiRouter.get('/spaces', asyncHandler(listSpacesHandler))
+apiRouter.post('/spaces', requireAuth, asyncHandler(createSpaceHandler))
+apiRouter.post('/spaces/join', requireAuth, asyncHandler(joinSpaceHandler))
 apiRouter.get('/spaces/current', requireAuth, asyncHandler(getCurrentSpaceHandler))
 apiRouter.get('/spaces/current/dashboard', requireAuth, asyncHandler(getCurrentDashboardHandler))
+apiRouter.patch('/spaces/current', requireAuth, asyncHandler(updateCurrentSpaceHandler))
+apiRouter.post('/spaces/current/invite', requireAuth, asyncHandler(createInviteHandler))
 apiRouter.get('/spaces/:spaceId', asyncHandler(getSpaceHandler))
 apiRouter.get('/spaces/:spaceId/dashboard', asyncHandler(getDashboardHandler))
 apiRouter.get('/spaces/:spaceId/anniversaries', asyncHandler(async (req, res) => {

@@ -155,6 +155,7 @@ import { useLoveStore } from '../../stores/love'
 import { formatDate } from '../../utils/date'
 import { useLoveMusic } from '../../utils/love-music'
 import { CLOUD_LOVE_BG } from '../../config'
+import { resolveMediaUrl } from '../../services/request'
 
 const love = useLoveStore()
 const cloudLoveBg = CLOUD_LOVE_BG
@@ -190,7 +191,7 @@ onHide(() => {
 const startDateText = computed(() => formatDate(love.loveStartDate))
 const anniversaryName = computed(() => love.currentAnniversaryName)
 const coupleDisplay = computed(() => [
-  { key: 'me', label: '我', avatarUrl: '' },
+  { key: 'me', label: '我', avatarUrl: resolveMediaUrl(love.space.couplePhoto) },
   { key: 'ta', label: 'Ta', avatarUrl: '' }
 ])
 

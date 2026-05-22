@@ -1,4 +1,13 @@
-import { getDashboard, getSpace, listSpaces } from '../services/space-service.js'
+import {
+  createInvite,
+  createSpace,
+  getDashboard,
+  getSpace,
+  joinSpaceByInvite,
+  listSpaces,
+  updateCurrentSpace
+} from '../services/space-service.js'
+import { signMiniSession } from '../services/auth-service.js'
 
 export async function getDashboardHandler(req, res) {
   const data = await getDashboard(req.params.spaceId)
@@ -31,4 +40,32 @@ export async function getCurrentDashboardHandler(req, res) {
     return res.status(404).json({ code: 'SPACE_NOT_FOUND', message: '情侣空间不存在' })
   }
   res.json({ code: 0, data })
+}
+
+export async function updateCurrentSpaceHandler(req, res) {
+  const space = await updateCurrentSpace(req.spaceId, req.body || {})
+  if (!space) {
+    return res.status(404).json({ code: 'SPACE_NOT_FOUND', message: '情侣空间不存在' })
+  }
+  res.json({ code: 0, data: space })
+}
+
+export async function createSpaceHandler(req, res) {
+  const space = await createSpace(req.user.id, req.body || {})
+  const token = signMiniSession(req.user, space)
+  res.json({ code: 0, data: { token, space } })
+}
+
+export async function createInviteHandler(req, res) {
+  const data = await createInvite(req.spaceId)
+  if (!data) {
+    return res.status(404).json({ code: 'SPACE_NOT_FOUND', message: '情侣空间不存在' })
+  }
+  res.json({ code: 0, data })
+}
+
+export async function joinSpaceHandler(req, res) {
+  const space = await joinSpaceByInvite(req.user.id, req.body?.inviteCode)
+  const token = signMiniSession(req.user, space)
+  res.json({ code: 0, data: { token, space } })
 }

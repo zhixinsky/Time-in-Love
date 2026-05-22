@@ -2,9 +2,26 @@ import { seed } from '../data/seed.js'
 import * as dbRepo from '../db/space-repository.js'
 import { isDbEnabled } from '../db/pool.js'
 import { daysBetween, isSameMonthDay } from '../utils/date.js'
+import { createId } from '../utils/id.js'
+
+const memorySpaces = new Map(seed.spaces.map((space) => [space.id, { ...space }]))
+const memoryMembers = new Map([['u_me', 'space_demo'], ['u_ta', 'space_demo']])
+
+function normalizeSpace(space) {
+  if (!space) return null
+  return {
+    id: space.id,
+    name: space.name,
+    subtitle: space.subtitle,
+    firstJoinedAt: space.firstJoinedAt,
+    loveStartDate: space.loveStartDate,
+    couplePhoto: space.couplePhoto || '',
+    inviteCode: space.inviteCode || ''
+  }
+}
 
 function getDashboardFromSeed(spaceId) {
-  const space = seed.spaces.find((s) => s.id === spaceId)
+  const space = memorySpaces.get(spaceId) || seed.spaces.find((s) => s.id === spaceId)
   if (!space) return null
 
   const loveStartDate = space.loveStartDate || space.firstJoinedAt
@@ -18,12 +35,7 @@ function getDashboardFromSeed(spaceId) {
 
   return {
     space: {
-      id: space.id,
-      name: space.name,
-      subtitle: space.subtitle,
-      firstJoinedAt: space.firstJoinedAt,
-      loveStartDate: space.loveStartDate,
-      couplePhoto: space.couplePhoto
+      ...normalizeSpace(space)
     },
     loveDays,
     currentAnniversaryName,
@@ -45,7 +57,7 @@ export async function getSpace(spaceId) {
       console.error('[space-service] db get space failed, fallback seed', err.message)
     }
   }
-  return seed.spaces.find((s) => s.id === spaceId) || null
+  return normalizeSpace(memorySpaces.get(spaceId) || seed.spaces.find((s) => s.id === spaceId))
 }
 
 export async function getDashboard(spaceId) {
@@ -69,7 +81,119 @@ export async function listSpaces() {
       console.error('[space-service] db list spaces failed', err.message)
     }
   }
-  return seed.spaces
+  return Array.from(memorySpaces.values()).map(normalizeSpace)
+}
+
+export async function updateCurrentSpace(spaceId, payload) {
+  if (isDbEnabled()) {
+    try {
+      return await dbRepo.updateSpace(spaceId, payload)
+    } catch (err) {
+      console.error('[space-service] db update space failed, fallback memory', err.message)
+    }
+  }
+  const current = memorySpaces.get(spaceId)
+  if (!current) return null
+  const next = { ...current }
+  ;['name', 'subtitle', 'loveStartDate', 'couplePhoto'].forEach((key) => {
+    if (payload[key] !== undefined) next[key] = payload[key]
+  })
+  memorySpaces.set(spaceId, next)
+  return normalizeSpace(next)
+}
+
+function createInviteCode() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase()
+}
+
+export async function createInvite(spaceId) {
+  const inviteCode = createInviteCode()
+  if (isDbEnabled()) {
+    try {
+      const memberCount = await dbRepo.countMembers(spaceId)
+      if (memberCount >= 2) {
+        const err = new Error('当前空间已满员')
+        err.status = 400
+        err.code = 'SPACE_FULL'
+        throw err
+      }
+      const space = await dbRepo.saveInviteCode(spaceId, inviteCode)
+      return { inviteCode, space }
+    } catch (err) {
+      if (err.code === 'SPACE_FULL') throw err
+      console.error('[space-service] db create invite failed, fallback memory', err.message)
+    }
+  }
+  const space = memorySpaces.get(spaceId)
+  if (!space) return null
+  space.inviteCode = inviteCode
+  memorySpaces.set(spaceId, space)
+  return { inviteCode, space: normalizeSpace(space) }
+}
+
+export async function createSpace(userId, payload) {
+  if (isDbEnabled()) {
+    try {
+      return await dbRepo.createSpaceForUser(userId, payload)
+    } catch (err) {
+      console.error('[space-service] db create space failed, fallback memory', err.message)
+    }
+  }
+  const id = createId('space')
+  const today = new Date().toISOString().slice(0, 10)
+  const space = {
+    id,
+    name: payload.name || '恋爱时光',
+    subtitle: payload.subtitle || '记录我们的心动瞬间',
+    firstJoinedAt: today,
+    loveStartDate: payload.loveStartDate || today,
+    couplePhoto: payload.couplePhoto || '',
+    inviteCode: ''
+  }
+  memorySpaces.set(id, space)
+  memoryMembers.set(userId, id)
+  return normalizeSpace(space)
+}
+
+export async function joinSpaceByInvite(userId, inviteCode) {
+  const normalized = String(inviteCode || '').trim().toUpperCase()
+  if (!normalized) {
+    const err = new Error('请输入邀请码')
+    err.status = 400
+    err.code = 'INVITE_CODE_REQUIRED'
+    throw err
+  }
+  if (isDbEnabled()) {
+    try {
+      const space = await dbRepo.findSpaceByInviteCode(normalized)
+      if (!space) {
+        const err = new Error('邀请码无效或已过期')
+        err.status = 404
+        err.code = 'INVITE_NOT_FOUND'
+        throw err
+      }
+      const memberCount = await dbRepo.countMembers(space.id)
+      if (memberCount >= 2) {
+        const err = new Error('当前空间已满员')
+        err.status = 400
+        err.code = 'SPACE_FULL'
+        throw err
+      }
+      return await dbRepo.joinSpace(space.id, userId)
+    } catch (err) {
+      if (['INVITE_NOT_FOUND', 'SPACE_FULL'].includes(err.code)) throw err
+      console.error('[space-service] db join space failed, fallback memory', err.message)
+    }
+  }
+  const target = Array.from(memorySpaces.values()).find((space) => space.inviteCode === normalized)
+  if (!target) {
+    const err = new Error('邀请码无效或已过期')
+    err.status = 404
+    err.code = 'INVITE_NOT_FOUND'
+    throw err
+  }
+  memoryMembers.set(userId, target.id)
+  return normalizeSpace(target)
 }
 
 export async function getAdminOverview() {

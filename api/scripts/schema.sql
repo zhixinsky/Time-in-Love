@@ -18,14 +18,17 @@ CREATE TABLE IF NOT EXISTS spaces (
   first_joined_at DATE NOT NULL,
   love_start_date DATE NULL,
   couple_photo VARCHAR(512) DEFAULT '',
+  invite_code VARCHAR(16) DEFAULT '',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS space_members (
   space_id VARCHAR(32) NOT NULL,
   user_id VARCHAR(32) NOT NULL,
+  joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (space_id, user_id)
 ) ENGINE=InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS anniversaries (
   id VARCHAR(32) PRIMARY KEY,

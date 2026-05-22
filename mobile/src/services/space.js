@@ -9,4 +9,12 @@ export async function fetchSpaceDashboard(spaceId = 'current') {
   return api.getSpaceDashboard(spaceId)
 }
 
+export const updateCurrentSpace = (data) => api.updateCurrentSpace(data)
+
+export const createSpace = (data) => api.createSpace(data)
+
+export const createSpaceInvite = () => api.createSpaceInvite()
+
+export const joinSpace = (inviteCode) => api.joinSpace(inviteCode)
+
 export const DEMO_SPACE_ID = 'space_demo'

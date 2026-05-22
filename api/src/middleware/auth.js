@@ -12,6 +12,7 @@ export function requireAuth(req, res, next) {
       const payload = verifyMiniToken(bearer)
       userId = payload.userId
       spaceId = payload.spaceId
+      req.authPayload = payload
     } catch (err) {
       return next(err)
     }
@@ -26,7 +27,7 @@ export function requireAuth(req, res, next) {
 
   getSpace(spaceId)
     .then((space) => {
-      req.user = { id: userId, nickname: userId === 'u_me' ? '我' : '我' }
+      req.user = { id: userId, openId: req.authPayload?.openId || '', nickname: userId === 'u_me' ? '我' : '我' }
       req.spaceId = spaceId
       req.space = space
       next()

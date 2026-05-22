@@ -9,6 +9,14 @@ export const api = {
 
   getCurrentSpaceDashboard: () => request('/spaces/current/dashboard'),
 
+  updateCurrentSpace: (data) => request('/spaces/current', { method: 'PATCH', data }),
+
+  createSpace: (data) => request('/spaces', { method: 'POST', data }),
+
+  createSpaceInvite: () => request('/spaces/current/invite', { method: 'POST' }),
+
+  joinSpace: (inviteCode) => request('/spaces/join', { method: 'POST', data: { inviteCode } }),
+
   listAnniversaries: (spaceId) => request(`/spaces/${spaceId}/anniversaries`),
 
   listMoods: (spaceId) => request(`/spaces/${spaceId}/moods`),

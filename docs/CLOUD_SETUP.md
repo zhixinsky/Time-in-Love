@@ -65,6 +65,12 @@
 1. `api/scripts/schema.sql`
 2. `api/scripts/seed-data.sql`
 
+如果你已经部署过旧版本，再额外执行一次：
+
+```sql
+api/scripts/schema-space-v2.sql
+```
+
 ### 方式 B：API 服务内执行（部署后）
 
 服务发布且环境变量配好后，在「云端调试」终端：

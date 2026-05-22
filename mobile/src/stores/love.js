@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { fetchSpaceDashboard } from '../services/space'
+import { createSpace, createSpaceInvite, fetchSpaceDashboard, joinSpace, updateCurrentSpace } from '../services/space'
 import { useAuthStore } from './auth'
 import { daysBetween, isSameMonthDay } from '../utils/date'
 
@@ -80,6 +80,41 @@ export const useLoveStore = defineStore('love', () => {
     }
   }
 
+  async function saveSpace(payload) {
+    const auth = useAuthStore()
+    await auth.ensureLogin()
+    const nextSpace = await updateCurrentSpace(payload)
+    space.value = { ...space.value, ...nextSpace }
+    auth.syncSpace(space.value)
+    return nextSpace
+  }
+
+  async function resetSpace(payload = {}) {
+    const auth = useAuthStore()
+    await auth.ensureLogin()
+    const data = await createSpace(payload)
+    auth.applySession(data)
+    space.value = { ...space.value, ...data.space }
+    await loadDashboard()
+    return data.space
+  }
+
+  async function invitePartner() {
+    const auth = useAuthStore()
+    await auth.ensureLogin()
+    return createSpaceInvite()
+  }
+
+  async function joinByInvite(inviteCode) {
+    const auth = useAuthStore()
+    await auth.ensureLogin()
+    const data = await joinSpace(inviteCode)
+    auth.applySession(data)
+    space.value = { ...space.value, ...data.space }
+    await loadDashboard()
+    return data.space
+  }
+
   return {
     space,
     anniversaries,
@@ -91,6 +126,10 @@ export const useLoveStore = defineStore('love', () => {
     currentAnniversaryName,
     setLoveStartDate,
     setCouplePhoto,
-    loadDashboard
+    loadDashboard,
+    saveSpace,
+    resetSpace,
+    invitePartner,
+    joinByInvite
   }
 })

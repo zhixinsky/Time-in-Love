@@ -1,14 +1,86 @@
-import { dbQuery } from './pool.js'
+import { dbExecute, dbQuery } from './pool.js'
 import { daysBetween, isSameMonthDay } from '../utils/date.js'
+import { createId } from '../utils/id.js'
 
 export async function findSpaceById(spaceId) {
   const rows = await dbQuery(
     `SELECT id, name, subtitle, first_joined_at AS firstJoinedAt,
-            love_start_date AS loveStartDate, couple_photo AS couplePhoto
+            love_start_date AS loveStartDate, couple_photo AS couplePhoto, invite_code AS inviteCode
      FROM spaces WHERE id = ? LIMIT 1`,
     [spaceId]
   )
   return rows?.[0] || null
+}
+
+export async function updateSpace(spaceId, payload = {}) {
+  const fields = []
+  const params = []
+  const map = {
+    name: 'name',
+    subtitle: 'subtitle',
+    loveStartDate: 'love_start_date',
+    couplePhoto: 'couple_photo'
+  }
+  Object.entries(map).forEach(([key, column]) => {
+    if (payload[key] !== undefined) {
+      fields.push(`${column} = ?`)
+      params.push(payload[key] || null)
+    }
+  })
+  if (!fields.length) return findSpaceById(spaceId)
+  params.push(spaceId)
+  await dbExecute(`UPDATE spaces SET ${fields.join(', ')} WHERE id = ?`, params)
+  return findSpaceById(spaceId)
+}
+
+export async function createSpaceForUser(userId, payload = {}) {
+  const id = createId('space')
+  const firstJoinedAt = new Date().toISOString().slice(0, 10)
+  const loveStartDate = payload.loveStartDate || firstJoinedAt
+  await dbExecute(
+    `INSERT INTO spaces (id, name, subtitle, first_joined_at, love_start_date, couple_photo, invite_code)
+     VALUES (?, ?, ?, ?, ?, ?, '')`,
+    [
+      id,
+      payload.name || '恋爱时光',
+      payload.subtitle || '记录我们的心动瞬间',
+      firstJoinedAt,
+      loveStartDate,
+      payload.couplePhoto || ''
+    ]
+  )
+  await dbExecute('INSERT IGNORE INTO space_members (space_id, user_id) VALUES (?, ?)', [id, userId])
+  await dbExecute(
+    `INSERT INTO anniversaries (id, space_id, title, anniversary_date, repeat_type)
+     VALUES (?, ?, '恋爱纪念日', ?, 'yearly')`,
+    [createId('a'), id, loveStartDate]
+  )
+  return findSpaceById(id)
+}
+
+export async function countMembers(spaceId) {
+  const rows = await dbQuery('SELECT COUNT(*) AS c FROM space_members WHERE space_id = ?', [spaceId])
+  return Number(rows?.[0]?.c || 0)
+}
+
+export async function saveInviteCode(spaceId, inviteCode) {
+  await dbExecute('UPDATE spaces SET invite_code = ? WHERE id = ?', [inviteCode, spaceId])
+  return findSpaceById(spaceId)
+}
+
+export async function findSpaceByInviteCode(inviteCode) {
+  const rows = await dbQuery(
+    `SELECT id, name, subtitle, first_joined_at AS firstJoinedAt,
+            love_start_date AS loveStartDate, couple_photo AS couplePhoto, invite_code AS inviteCode
+     FROM spaces WHERE invite_code = ? LIMIT 1`,
+    [inviteCode]
+  )
+  return rows?.[0] || null
+}
+
+export async function joinSpace(spaceId, userId) {
+  await dbExecute('INSERT IGNORE INTO space_members (space_id, user_id) VALUES (?, ?)', [spaceId, userId])
+  return findSpaceById(spaceId)
 }
 
 export async function findDashboard(spaceId) {

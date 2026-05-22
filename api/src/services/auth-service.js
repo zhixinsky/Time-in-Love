@@ -46,7 +46,7 @@ async function resolveOpenId(req, code) {
   throw err
 }
 
-function signToken(user, space) {
+export function signMiniSession(user, space) {
   return jwt.sign(
     {
       typ: 'mini-user',
@@ -94,7 +94,7 @@ export async function loginMiniUser(req, body = {}) {
     ;({ user, space } = memoryLogin(openId))
   }
 
-  const token = signToken(user, space)
+  const token = signMiniSession(user, space)
   return { token, user, space }
 }
 
