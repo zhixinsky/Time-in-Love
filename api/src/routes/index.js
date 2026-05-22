@@ -49,6 +49,7 @@ import {
   updateChecklistItemHandler
 } from '../controllers/checklist-controller.js'
 import { answerTodayHandler, qaHistoryHandler, todayQuestionHandler } from '../controllers/qa-controller.js'
+import { generateAiContentHandler } from '../controllers/ai-controller.js'
 import {
   adminCreateMusicHandler,
   adminDeleteMusicHandler,
@@ -161,6 +162,11 @@ qaRouter.get('/today', asyncHandler(todayQuestionHandler))
 qaRouter.post('/today/answer', asyncHandler(answerTodayHandler))
 qaRouter.get('/history', asyncHandler(qaHistoryHandler))
 apiRouter.use('/qa', qaRouter)
+
+const aiRouter = Router()
+aiRouter.use(requireAuth)
+aiRouter.post('/generate', asyncHandler(generateAiContentHandler))
+apiRouter.use('/ai', aiRouter)
 
 const uploadRouter = Router()
 uploadRouter.use(requireAuth)

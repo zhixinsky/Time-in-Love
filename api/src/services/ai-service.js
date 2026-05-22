@@ -19,3 +19,40 @@ export function generateLoveDiarySummary({ content, mood, weather, temperature, 
   }
   return FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)]
 }
+
+const generators = {
+  advice(input) {
+    const scene = input || '今天'
+    return `给你们的小建议：${scene}里，试着给对方一个认真倾听的十分钟。恋爱里的安全感，很多时候就藏在“我有被好好放在心上”这件事里。`
+  },
+  loveWords(input) {
+    const name = input || '你'
+    return `想把今天的云、晚风和所有温柔都攒起来送给${name}。因为遇见你以后，普通的日子也会悄悄发光。`
+  },
+  anniversary(input) {
+    const event = input || '我们的纪念日'
+    return `${event}快乐。谢谢你把平凡日子过成了值得收藏的回忆，往后的每一年，也想和你一起慢慢走、认真爱。`
+  },
+  moments(input) {
+    const text = (input || '').replace(/\s+/g, ' ').trim()
+    if (!text) return '这一段回忆里有陪伴、有心动，也有属于你们的默契。它值得被好好保存，等以后再一起回看。'
+    return `这段记录最动人的地方，是你们把普通日常过出了亲密感。“${text.slice(0, 36)}${text.length > 36 ? '…' : ''}”里藏着很多真实的喜欢。`
+  },
+  post(input) {
+    const text = input || '和喜欢的人在一起'
+    return `${text}。日子不用特别盛大，只要身边是你，就已经很值得记录。`
+  },
+  weekly(input) {
+    const text = input || '这一周'
+    return `${text}的甜蜜指数：92%。本周关键词是“陪伴”和“默契”。建议下周安排一次小约会，把喜欢说得更直接一点。`
+  }
+}
+
+export function generateAiContent({ type = 'advice', input = '' }) {
+  const fn = generators[type] || generators.advice
+  return {
+    type,
+    result: fn(input),
+    generatedAt: new Date().toISOString()
+  }
+}

@@ -67,6 +67,8 @@ export const api = {
 
   getQaHistory: () => request('/qa/history'),
 
+  generateAiContent: (data) => request('/ai/generate', { method: 'POST', data }),
+
   getLatestDiary: (spaceId) => request(`/spaces/${spaceId}/diaries/latest`),
 
   login: (code) => request('/auth/wechat-login', { method: 'POST', data: { code } }),
