@@ -5,8 +5,12 @@
 export const WX_APP_ID = 'wxb76bea40dcb2999b'
 export const WX_CLOUD_ENV_ID = 'prod-d0gd8tvq9c6e19eb3'
 
-/** 云托管服务名称（在微信云托管创建服务时的名称，默认 api） */
-export const WX_CLOUD_SERVICE = 'api'
+/**
+ * 云托管「服务列表」里的名称（不是版本名！）
+ * 控制台：云托管 → 服务管理 → 服务列表 → 服务名称
+ * 若默认 api 报 INVALID_HOST，请改成你实际的名称（如 express-xxxx）
+ */
+export const WX_CLOUD_SERVICE = 'express-op14'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -14,18 +18,26 @@ const isProd = process.env.NODE_ENV === 'production'
 const DEV_HTTP_BASE = 'http://127.0.0.1:3000'
 
 /**
- * 生产：填云托管公网 HTTPS 域名（控制台 → 服务 → 公网访问）
- * 留空则小程序内使用 wx.cloud.callContainer 调用
+ * 云托管公网 HTTPS 根地址（末尾不要 /）
+ * 填写后走 HTTPS，不再走 callContainer（需在小程序后台配置 request 合法域名）
+ * 例：https://api-xxxxx.ap-shanghai.app.tcloudbase.com
+ * callContainer 报 INVALID_HOST 时，可优先填此项
  */
 export const CLOUD_RUN_PUBLIC_BASE = ''
 
 export const API_PREFIX = '/api/v1'
 
-/** H5 / 本地调试走 HTTP */
-export const API_BASE_URL = DEV_HTTP_BASE
+/**
+ * 本地联调：true → http://127.0.0.1:3000（需勾选不校验合法域名）
+ * false → 走云托管 wx.cloud.callContainer（无需配置 request 合法域名）
+ */
+export const USE_LOCAL_API = false
 
-/** 微信小程序生产优先走 callContainer */
-export const USE_CLOUD_CONTAINER = isProd && !CLOUD_RUN_PUBLIC_BASE
+/** H5 / 本地调试走 HTTP */
+export const API_BASE_URL = USE_LOCAL_API ? DEV_HTTP_BASE : CLOUD_RUN_PUBLIC_BASE || DEV_HTTP_BASE
+
+/** 微信小程序走云托管 callContainer（需 USE_LOCAL_API=false 且已 wx.cloud.init） */
+export const USE_CLOUD_CONTAINER = !USE_LOCAL_API && !CLOUD_RUN_PUBLIC_BASE
 
 /** 无后端时是否仅用 Pinia mock */
 export const USE_MOCK = false

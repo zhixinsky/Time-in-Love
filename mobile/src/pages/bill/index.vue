@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page bill-page app-nav-page">
-    <image class="page-bg" :src="cloudLoveBg" mode="widthFix" />
+    <CloudImage image-class="page-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
         <view class="app-nav">
@@ -93,13 +93,13 @@ import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useBillStore } from '../../stores/bill'
 import { useLoveStore } from '../../stores/love'
+import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 
 const bill = useBillStore()
 const love = useLoveStore()
 const sheetVisible = ref(false)
 const editorVisible = ref(false)
-const cloudLoveBg = CLOUD_LOVE_BG
 const categories = ['餐饮', '礼物', '旅行', '电影', '住宿', '交通', '生活', '其他']
 const categoryIndex = ref(0)
 const form = reactive({

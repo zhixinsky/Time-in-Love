@@ -1,13 +1,12 @@
 <script>
 import { onShow } from '@dcloudio/uni-app'
 import { WX_CLOUD_ENV_ID } from './config'
+import { initCloudContainer } from './services/request'
 
 export default {
   onLaunch() {
     // #ifdef MP-WEIXIN
-    if (typeof wx !== 'undefined' && wx.cloud) {
-      wx.cloud.init({ env: WX_CLOUD_ENV_ID, traceUser: true })
-    }
+    initCloudContainer()
     // #endif
     console.log('星芽恋记启动', WX_CLOUD_ENV_ID)
   },

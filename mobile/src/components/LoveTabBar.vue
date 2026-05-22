@@ -20,7 +20,7 @@
           <template v-if="tab.center">
             <view class="center-orb">
               <view class="orb-logo-wrap">
-                <image class="orb-logo" :src="centerLogo" mode="aspectFit" />
+                <CloudImage image-class="orb-logo" :file-id="CLOUD_AI_LOGO" mode="aspectFit" />
               </view>
             </view>
           </template>
@@ -42,6 +42,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import CloudImage from './CloudImage.vue'
 import { CLOUD_AI_LOGO } from '../config'
 
 const props = defineProps({
@@ -50,8 +51,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['create'])
-
-const centerLogo = CLOUD_AI_LOGO
 
 const resolved = computed(() => props.current || props.active || 'home')
 

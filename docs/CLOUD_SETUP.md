@@ -15,7 +15,7 @@
 
 ## 一、部署 API + Admin 到云托管
 
-1. 云托管控制台 → 环境 `prod-d0gd8tvq9c6e19eb3` → 新建服务（建议服务名 **`api`**）
+1. 云托管控制台 → 环境 `prod-d0gd8tvq9c6e19eb3` → 服务名 **`express-op14`**（与 `mobile/src/config/index.js` 中 `WX_CLOUD_SERVICE` 一致）
 2. 上传代码：选择 GitHub 仓库根目录，使用根目录 `Dockerfile` 构建
 3. 环境变量（控制台配置，不要写进 Git）：
 
@@ -92,7 +92,7 @@ node scripts/init-db.js
 
 ### 方式 A：云托管 callContainer（推荐）
 
-1. `mobile/src/config/index.js` 中 `WX_CLOUD_SERVICE` 与服务名一致（默认 `api`）
+1. `mobile/src/config/index.js` 中 `WX_CLOUD_SERVICE` 与服务名一致（当前 `express-op14`）
 2. `App.vue` 已 `wx.cloud.init({ env: 'prod-d0gd8tvq9c6e19eb3' })`
 3. 生产包 `USE_CLOUD_CONTAINER` 为 true 时走 `wx.cloud.callContainer`
 
@@ -101,7 +101,22 @@ node scripts/init-db.js
 1. 将公网域名填入 `CLOUD_RUN_PUBLIC_BASE`
 2. 小程序后台 → 开发 → 开发管理 → 服务器域名 → **request 合法域名** 添加该域名
 
-本地调试：开发者工具勾选「不校验合法域名」，`npm run dev:api` 后使用 `http://127.0.0.1:3000`。
+本地调试：
+
+小程序默认 **`USE_LOCAL_API = false`**，通过 `wx.cloud.callContainer` 访问云托管服务 **`express-op14`**，无需配置 `127.0.0.1` 合法域名。
+
+仅本地直连本机 API 时设 `USE_LOCAL_API = true`，并勾选「不校验合法域名」+ `npm run dev:api`。
+
+### callContainer 报 INVALID_HOST 时
+
+按顺序排查：
+
+1. **微信开发者工具** → 顶部 **「云开发」** → 选择环境 **`prod-d0gd8tvq9c6e19eb3`**（必须与本项目一致）
+2. **云托管控制台** → 服务管理 → **服务列表** → 复制 **服务名称**（不是版本名）→ 填入 `mobile/src/config/index.js` 的 **`WX_CLOUD_SERVICE`**
+3. 确认该服务 **已发布** 且至少有一个在线版本
+4. 若仍失败：在云托管控制台复制 **公网访问 HTTPS 地址**，填入 **`CLOUD_RUN_PUBLIC_BASE`**（并在小程序后台 → 开发管理 → 服务器域名 → request 合法域名 中添加该域名），然后重新构建
+
+当前项目 `WX_CLOUD_SERVICE = 'express-op14'`，须与控制台「服务列表」名称完全一致。
 
 ---
 

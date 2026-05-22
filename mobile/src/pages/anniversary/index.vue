@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page anniversary-page app-nav-page">
-    <image class="page-bg" :src="cloudLoveBg" mode="widthFix" />
+    <CloudImage image-class="page-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
         <view class="app-nav">
@@ -89,12 +89,12 @@ import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useAnniversaryStore } from '../../stores/anniversary'
 import { useLoveStore } from '../../stores/love'
+import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 import { formatDate } from '../../utils/date'
 
 const anniversary = useAnniversaryStore()
 const love = useLoveStore()
-const cloudLoveBg = CLOUD_LOVE_BG
 const sheetVisible = ref(false)
 const editorVisible = ref(false)
 const editingId = ref('')

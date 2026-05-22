@@ -10,7 +10,8 @@
         </view>
       </view>
       <view class="card profile-card">
-        <image class="avatar-img" :src="displayPhoto" mode="aspectFill" />
+        <image v-if="couplePhotoUrl" class="avatar-img" :src="couplePhotoUrl" mode="aspectFill" />
+        <CloudImage v-else image-class="avatar-img" :file-id="CLOUD_LOGO" mode="aspectFill" />
         <view>
           <text class="soft-title">{{ love.space.name }}</text>
           <text class="soft-subtitle">当前空间 · 已在一起 {{ love.loveDays }} 天</text>
@@ -40,13 +41,16 @@ import { computed, ref } from 'vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useLoveStore } from '../../stores/love'
+import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOGO } from '../../config'
 import { resolveMediaUrl, uploadFile } from '../../services/request'
 
 const love = useLoveStore()
-const cloudLogo = CLOUD_LOGO
 const sheetVisible = ref(false)
-const displayPhoto = computed(() => resolveMediaUrl(love.space.couplePhoto) || cloudLogo)
+const couplePhotoUrl = computed(() => {
+  const url = resolveMediaUrl(love.space.couplePhoto)
+  return url && /^https?:\/\//i.test(url) ? url : ''
+})
 
 love.loadDashboard()
 

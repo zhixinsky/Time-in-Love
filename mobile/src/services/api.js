@@ -1,4 +1,5 @@
 import request from './request'
+import { buildQuery } from '../utils/query'
 
 export const api = {
   health: () => request('/health'),
@@ -32,11 +33,7 @@ export const api = {
   getBillSummary: (spaceId) => request(`/spaces/${spaceId}/bills/summary`),
 
   listBills: (params = {}) => {
-    const search = new URLSearchParams()
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') search.set(key, String(value))
-    })
-    const qs = search.toString()
+    const qs = buildQuery(params)
     return request(`/bills${qs ? `?${qs}` : ''}`)
   },
 
@@ -45,11 +42,7 @@ export const api = {
   deleteBill: (id) => request(`/bills/${id}`, { method: 'DELETE' }),
 
   listAlbumMedia: (params = {}) => {
-    const search = new URLSearchParams()
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') search.set(key, String(value))
-    })
-    const qs = search.toString()
+    const qs = buildQuery(params)
     return request(`/albums/media${qs ? `?${qs}` : ''}`)
   },
 

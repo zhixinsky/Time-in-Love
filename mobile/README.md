@@ -42,4 +42,10 @@ mobile/src/
 3. 将 `src/config/index.js` 中 `dev` 地址设为 `http://127.0.0.1:3000`
 4. 在 store 或页面调用 `fetchSpaceDashboard()`（见 `services/space.js`）
 
-生产环境填写云托管 HTTPS 域名到 `prod`，并在小程序后台配置合法域名。
+生产环境：将 `src/config/index.js` 中 **`USE_LOCAL_API` 改为 `false`**，并填写 `CLOUD_RUN_PUBLIC_BASE` 或走 `callContainer`；在小程序后台配置合法域名。
+
+默认 **`USE_LOCAL_API = false`**，小程序 API 走 **云托管 `callContainer`**（服务名 `express-op14`，环境 `prod-d0gd8tvq9c6e19eb3`）。
+
+仅在本机直连 API 时改为 `USE_LOCAL_API = true` 并启动 `npm run dev:api`，且开发者工具勾选「不校验合法域名」。
+
+云图片使用 `CloudImage` + `getTempFileURL`。

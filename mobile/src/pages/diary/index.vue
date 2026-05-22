@@ -1,6 +1,6 @@
 <template>
   <view class="safe-page diary-page">
-    <image class="diary-bg" :src="cloudLoveBg" mode="widthFix" />
+    <CloudImage image-class="diary-bg" :file-id="CLOUD_LOVE_BG" mode="widthFix" />
 
     <view class="app-nav diary-nav">
       <view class="app-nav__main">
@@ -194,9 +194,9 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useDiaryStore } from '../../stores/diary'
+import CloudImage from '../../components/CloudImage.vue'
 import { CLOUD_LOVE_BG } from '../../config'
 
-const cloudLoveBg = CLOUD_LOVE_BG
 import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl } from '../../services/request'
 

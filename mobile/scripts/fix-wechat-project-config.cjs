@@ -22,6 +22,20 @@ if (fs.existsSync(configPath)) {
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`)
 }
 
-if (fs.existsSync(privateConfigPath)) {
-  fs.rmSync(privateConfigPath, { force: true })
-}
+/** 本地开发：关闭合法域名校验（与 project.config.json 中 urlCheck 双保险） */
+fs.writeFileSync(
+  privateConfigPath,
+  `${JSON.stringify(
+    {
+      description: '本地开发配置，勿提交敏感信息',
+      projectname: '星芽恋记',
+      setting: {
+        urlCheck: false,
+        ignoreDevUnusedFiles: false,
+        ignoreUploadUnusedFiles: false
+      }
+    },
+    null,
+    2
+  )}\n`
+)

@@ -2,6 +2,7 @@ import { onAppHide, onAppShow } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { CLOUD_LOVE_BG } from '../config'
 import { DEFAULT_LOVE_MUSIC, musicApi } from '../services/music'
+import { resolveCloudFileUrl } from './cloud-file'
 
 function readSession(key) {
   return uni.getStorageSync(key)
@@ -179,7 +180,7 @@ function pickRandom(excludeSrc) {
   return list[Math.floor(Math.random() * list.length)]
 }
 
-function playItem(item, { autoplay = true, startTime = 0 } = {}) {
+async function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   const bgm = ensureManager()
   if (!bgm || !item?.src) {
     showMusicToast({ title: '请在微信小程序中播放音乐', icon: 'none' })
@@ -191,19 +192,28 @@ function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   const seekAt = Math.max(0, startTime)
   pendingSeekAfterLoad = seekAt
 
+  let audioSrc = next.src
+  let coverUrl = next.coverImgUrl || CLOUD_LOVE_BG
+  try {
+    audioSrc = await resolveCloudFileUrl(next.src)
+    coverUrl = await resolveCloudFileUrl(next.coverImgUrl || CLOUD_LOVE_BG)
+  } catch (e) {
+    console.warn('[love-music] resolve cloud media failed', e)
+  }
+
   bgm.title = next.title || '恋爱时光'
   bgm.singer = next.singer || 'AI星芽'
   bgm.epname = next.epname || '星芽恋记情侣空间'
-  bgm.coverImgUrl = next.coverImgUrl || CLOUD_LOVE_BG
+  bgm.coverImgUrl = coverUrl
   bgm.webUrl = '/pages/home/index'
 
-  const sameSrc = bgm.src === next.src
+  const sameSrc = bgm.src === audioSrc || bgm.src === next.src
   const liveAt = getManagerCurrentTime(bgm)
   const mustReloadForSeek = seekAt > 0 && liveAt < seekAt - 1
 
   if (!sameSrc || mustReloadForSeek) {
     bgm.startTime = seekAt
-    bgm.src = next.src
+    bgm.src = audioSrc
     if (seekAt > 0) scheduleSeekRetries(bgm)
     if (autoplay) {
       try {
