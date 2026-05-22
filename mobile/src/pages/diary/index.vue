@@ -3,7 +3,12 @@
     <image class="diary-bg" :src="cloudLoveBg" mode="widthFix" />
 
     <view class="diary-nav">
-      <text class="nav-title">心动日记</text>
+      <view class="nav-left">
+        <view class="nav-back tap-scale" @tap="goHome">
+          <text>‹</text>
+        </view>
+        <text class="nav-title">心动日记</text>
+      </view>
       <view class="nav-right">
         <picker mode="date" :value="diary.selectedDate" @change="onPickDate">
           <view class="nav-calendar tap-scale">
@@ -180,17 +185,12 @@
         <text>记录心动瞬间</text>
       </button>
     </view>
-
-    <LoveTabBar active="diary" @create="sheetVisible = true" />
-    <QuickSheet :visible="sheetVisible" @close="sheetVisible = false" />
   </view>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import LoveTabBar from '../../components/LoveTabBar.vue'
-import QuickSheet from '../../components/QuickSheet.vue'
 import { useDiaryStore } from '../../stores/diary'
 import { CLOUD_LOVE_BG } from '../../config'
 
@@ -199,7 +199,6 @@ import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl } from '../../services/request'
 
 const diary = useDiaryStore()
-const sheetVisible = ref(false)
 const expanded = ref(false)
 let weekTouchX = 0
 
@@ -312,6 +311,10 @@ function openEdit() {
   uni.navigateTo({ url: `/pages/diary/edit?${q.join('&')}` })
 }
 
+function goHome() {
+  uni.redirectTo({ url: '/pages/home/index' })
+}
+
 function openTimelineItem(item) {
   diary.selectDate(item.date)
 }
@@ -358,6 +361,28 @@ onShow(() => {
   color: #4a3d52;
 }
 
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.nav-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7b647f;
+  font-size: 48rpx;
+  font-weight: 300;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1rpx solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10rpx 28rpx rgba(255, 170, 210, 0.12);
+}
+
 .nav-right {
   display: flex;
   align-items: center;
@@ -384,7 +409,7 @@ onShow(() => {
 .diary-scroll {
   position: relative;
   z-index: 5;
-  height: calc(100vh - 200rpx);
+  height: calc(100vh - 136rpx);
   padding: 0 24rpx;
   box-sizing: border-box;
 }
@@ -853,14 +878,14 @@ onShow(() => {
 }
 
 .scroll-bottom-spacer {
-  height: 200rpx;
+  height: 150rpx;
 }
 
 .bottom-bar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
   z-index: 20;
   display: flex;
   justify-content: center;
