@@ -47,9 +47,9 @@
 | `WX_CLOUD_ENV_ID` | `prod-d0gd8tvq9c6e19eb3` |
 | `WX_APPID` | `wxb76bea40dcb2999b` |
 | `MYSQL_DATABASE` | `love`（若平台未注入） |
-| `XIAOMI_API_KEY` | 小米 MiMo 大模型 API Key |
-| `XIAOMI_AI_BASE_URL` | OpenAI 兼容地址，默认 `https://api.mimo-v2.com/v1` |
-| `XIAOMI_AI_MODEL` | 模型名，默认 `mimo-v2-flash` |
+| `MIMO_APIKEY` | 小米 MiMo 大模型 API Key |
+| `MIMO_BASE_URL` | OpenAI 兼容地址，默认 `https://api.mimo-v2.com/v1` |
+| `MIMO_MODEL` | 模型名，默认 `mimo-v2-flash` |
 
 > 本地 `.env` 仍可用 `MYSQL_HOST` / `MYSQL_USER` 等别名，代码会自动兼容。
 
