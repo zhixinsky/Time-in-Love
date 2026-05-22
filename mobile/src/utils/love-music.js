@@ -40,6 +40,8 @@ let lastPersistAt = 0
 let lifecycleBound = false
 let resumeInflight = null
 let resumeDebounceTimer = null
+/** 当前曲目 cloud://（bgm.src 可能被微信改成内部 URL，不能用来判断是否同一首） */
+let activeLogicalSrc = ''
 
 const musicControlsVisible = ref(false)
 const isMusicPlaying = ref(false)
@@ -204,13 +206,14 @@ function playItem(item, { autoplay = true, startTime = 0 } = {}) {
   bgm.coverImgUrl = next.coverImgUrl || CLOUD_LOVE_BG
   bgm.webUrl = '/pages/home/index'
 
-  const sameSrc = bgm.src === next.src
+  const sameSrc = activeLogicalSrc === next.src && Boolean(bgm.src)
   const liveAt = getManagerCurrentTime(bgm)
   const mustReloadForSeek = seekAt > 0 && liveAt < seekAt - 1
 
   if (!sameSrc || mustReloadForSeek) {
     bgm.startTime = seekAt
     bgm.src = next.src
+    activeLogicalSrc = next.src
     if (seekAt > 0) scheduleSeekRetries(bgm)
     if (!autoplay) {
       setTimeout(() => {
@@ -247,6 +250,11 @@ function playItem(item, { autoplay = true, startTime = 0 } = {}) {
     isMusicPlaying.value = true
     userWantsPlay = true
   } else if (!autoplay) {
+    try {
+      bgm.pause()
+    } catch {
+      /* ignore */
+    }
     isMusicPlaying.value = false
   } else {
     isMusicPlaying.value = !bgm.paused
@@ -301,7 +309,7 @@ async function resumeLoveMusic() {
     await loadPlaylist()
     const restored = restoreSession()
     if (restored?.shouldPlay) {
-      await playItem(restored.item, { autoplay: true, startTime: restored.startTime })
+      playItem(restored.item, { autoplay: true, startTime: restored.startTime })
       return
     }
     const bgm = manager
@@ -312,12 +320,12 @@ async function resumeLoveMusic() {
     if (bgm?.src && storedItem && userWantsPlay) {
       const seekAt = Math.max(0, Number(stored.currentTime) || 0)
       if (seekAt > 0) {
-        await playItem(storedItem, { autoplay: true, startTime: seekAt })
+        playItem(storedItem, { autoplay: true, startTime: seekAt })
         return
       }
     }
     if (!bgm?.src && Array.isArray(playlist) && playlist.length && userWantsPlay) {
-      await playItem(pickRandom(), { autoplay: true })
+      playItem(pickRandom(), { autoplay: true })
     }
   })()
   try {
@@ -462,7 +470,8 @@ export function useLoveMusic() {
       saveSession({ resumeOnReturn: false })
     } else {
       userWantsPlay = true
-      const item = currentItem || playlist.find((x) => x.src === bgm.src)
+      const item =
+        currentItem || playlist.find((x) => x.src === activeLogicalSrc || x.src === bgm.src)
       if (item) {
         const resumeAt = getManagerCurrentTime(bgm)
         playItem(item, { autoplay: true, startTime: resumeAt })
