@@ -1,0 +1,29 @@
+USE love;
+
+ALTER TABLE diaries ADD COLUMN user_id VARCHAR(32) NOT NULL DEFAULT '';
+ALTER TABLE diaries ADD COLUMN temperature VARCHAR(16) DEFAULT '';
+ALTER TABLE diaries ADD COLUMN location_name VARCHAR(128) DEFAULT '';
+ALTER TABLE diaries ADD COLUMN location_lat DECIMAL(10, 7) NULL;
+ALTER TABLE diaries ADD COLUMN location_lng DECIMAL(10, 7) NULL;
+ALTER TABLE diaries ADD COLUMN visibility VARCHAR(16) NOT NULL DEFAULT 'both';
+ALTER TABLE diaries ADD COLUMN ai_summary VARCHAR(512) DEFAULT '';
+ALTER TABLE diaries ADD COLUMN love_day INT UNSIGNED DEFAULT 1;
+ALTER TABLE diaries ADD COLUMN diary_date DATE NULL;
+ALTER TABLE diaries ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE diaries ADD COLUMN deleted_at DATETIME NULL;
+ALTER TABLE diaries ADD INDEX idx_space_date (space_id, diary_date);
+ALTER TABLE diaries ADD INDEX idx_user (user_id);
+
+UPDATE diaries SET diary_date = DATE(created_at) WHERE diary_date IS NULL;
+
+CREATE TABLE IF NOT EXISTS diary_media (
+  id VARCHAR(32) PRIMARY KEY,
+  diary_id VARCHAR(32) NOT NULL,
+  type VARCHAR(16) NOT NULL,
+  url VARCHAR(512) NOT NULL,
+  cover_url VARCHAR(512) DEFAULT '',
+  duration INT UNSIGNED DEFAULT 0,
+  sort INT UNSIGNED DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_diary (diary_id)
+) ENGINE=InnoDB;

@@ -105,11 +105,21 @@ export async function findDashboard(spaceId) {
     [spaceId]
   )
 
-  const diaries = await dbQuery(
-    `SELECT id, space_id AS spaceId, content, mood, weather, location, created_at AS createdAt
-     FROM diaries WHERE space_id = ? ORDER BY created_at DESC LIMIT 1`,
-    [spaceId]
-  )
+  let diaries = []
+  try {
+    diaries = await dbQuery(
+      `SELECT id, space_id AS spaceId, content, mood, weather,
+              location_name AS locationName, diary_date AS diaryDate, created_at AS createdAt
+       FROM diaries WHERE space_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1`,
+      [spaceId]
+    )
+  } catch {
+    diaries = await dbQuery(
+      `SELECT id, space_id AS spaceId, content, mood, weather, location, created_at AS createdAt
+       FROM diaries WHERE space_id = ? ORDER BY created_at DESC LIMIT 1`,
+      [spaceId]
+    )
+  }
 
   const loveStartDate = space.loveStartDate || space.firstJoinedAt
   const loveDays = daysBetween(loveStartDate)
@@ -199,10 +209,17 @@ export async function listAllUsers() {
 }
 
 export async function listAllDiaries() {
-  return dbQuery(
-    `SELECT id, space_id AS spaceId, content, mood, weather, location, created_at AS createdAt
-     FROM diaries ORDER BY created_at DESC LIMIT 100`
-  )
+  try {
+    return await dbQuery(
+      `SELECT id, space_id AS spaceId, content, mood, weather, location_name AS locationName, created_at AS createdAt
+       FROM diaries WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`
+    )
+  } catch {
+    return dbQuery(
+      `SELECT id, space_id AS spaceId, content, mood, weather, location, created_at AS createdAt
+       FROM diaries ORDER BY created_at DESC LIMIT 100`
+    )
+  }
 }
 
 export async function countOverview() {

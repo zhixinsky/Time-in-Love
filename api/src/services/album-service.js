@@ -1,5 +1,5 @@
-import { getAlbumMedia } from '../data/diary-store.js'
+import { fetchAlbumMedia } from './diary-service.js'
 
-export function listAlbumMedia(spaceId, userId, query = {}) {
-  return getAlbumMedia(spaceId, userId, Number(query.page || 1), Number(query.pageSize || 30))
+export async function listAlbumMedia(spaceId, userId, query = {}) {
+  return fetchAlbumMedia(spaceId, userId, Number(query.page || 1), Number(query.pageSize || 30))
 }

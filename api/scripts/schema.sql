@@ -109,10 +109,34 @@ CREATE TABLE IF NOT EXISTS sweet_answers (
 CREATE TABLE IF NOT EXISTS diaries (
   id VARCHAR(32) PRIMARY KEY,
   space_id VARCHAR(32) NOT NULL,
-  content TEXT NOT NULL,
+  user_id VARCHAR(32) NOT NULL,
+  content TEXT,
   mood VARCHAR(32) DEFAULT '',
   weather VARCHAR(32) DEFAULT '',
-  location VARCHAR(64) DEFAULT '',
+  temperature VARCHAR(16) DEFAULT '',
+  location_name VARCHAR(128) DEFAULT '',
+  location_lat DECIMAL(10, 7) NULL,
+  location_lng DECIMAL(10, 7) NULL,
+  visibility VARCHAR(16) NOT NULL DEFAULT 'both',
+  ai_summary VARCHAR(512) DEFAULT '',
+  love_day INT UNSIGNED DEFAULT 1,
+  diary_date DATE NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_space_created (space_id, created_at)
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted_at DATETIME NULL,
+  INDEX idx_space_date (space_id, diary_date),
+  INDEX idx_space_created (space_id, created_at),
+  INDEX idx_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS diary_media (
+  id VARCHAR(32) PRIMARY KEY,
+  diary_id VARCHAR(32) NOT NULL,
+  type VARCHAR(16) NOT NULL,
+  url VARCHAR(512) NOT NULL,
+  cover_url VARCHAR(512) DEFAULT '',
+  duration INT UNSIGNED DEFAULT 0,
+  sort INT UNSIGNED DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_diary (diary_id)
 ) ENGINE=InnoDB;

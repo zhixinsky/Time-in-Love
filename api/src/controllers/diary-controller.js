@@ -1,38 +1,38 @@
 import * as diaryService from '../services/diary-service.js'
 
-export function getDiaryByDateHandler(req, res) {
+export async function getDiaryByDateHandler(req, res) {
   const date = req.query.date
   if (!date) {
     return res.status(400).json({ code: 'BAD_REQUEST', message: '缺少 date 参数' })
   }
-  const data = diaryService.fetchByDate(req.spaceId, req.user.id, date)
+  const data = await diaryService.fetchByDate(req.spaceId, req.user.id, date)
   res.json({ code: 0, data: data || { diary: null, mediaList: [], author: null, aiSummary: '' } })
 }
 
-export function getTimelineHandler(req, res) {
+export async function getTimelineHandler(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1)
   const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 10))
-  const data = diaryService.fetchTimeline(req.spaceId, req.user.id, page, pageSize)
+  const data = await diaryService.fetchTimeline(req.spaceId, req.user.id, page, pageSize)
   res.json({ code: 0, data })
 }
 
-export function getDiaryDetailHandler(req, res) {
-  const data = diaryService.fetchDetail(req.spaceId, req.user.id, req.params.id)
+export async function getDiaryDetailHandler(req, res) {
+  const data = await diaryService.fetchDetail(req.spaceId, req.user.id, req.params.id)
   if (!data) return res.status(404).json({ code: 'NOT_FOUND', message: '日记不存在或无权查看' })
   res.json({ code: 0, data })
 }
 
-export function createDiaryHandler(req, res) {
+export async function createDiaryHandler(req, res) {
   if (!req.body?.diaryDate) {
     return res.status(400).json({ code: 'BAD_REQUEST', message: '缺少 diaryDate' })
   }
-  const data = diaryService.create(req.spaceId, req.user.id, req.body)
+  const data = await diaryService.create(req.spaceId, req.user.id, req.body)
   res.status(201).json({ code: 0, data })
 }
 
-export function updateDiaryHandler(req, res) {
+export async function updateDiaryHandler(req, res) {
   try {
-    const data = diaryService.update(req.spaceId, req.user.id, req.params.id, req.body)
+    const data = await diaryService.update(req.spaceId, req.user.id, req.params.id, req.body)
     if (!data) return res.status(404).json({ code: 'NOT_FOUND', message: '日记不存在' })
     res.json({ code: 0, data })
   } catch (e) {
@@ -41,9 +41,9 @@ export function updateDiaryHandler(req, res) {
   }
 }
 
-export function deleteDiaryHandler(req, res) {
+export async function deleteDiaryHandler(req, res) {
   try {
-    const ok = diaryService.remove(req.spaceId, req.user.id, req.params.id)
+    const ok = await diaryService.remove(req.spaceId, req.user.id, req.params.id)
     if (!ok) return res.status(404).json({ code: 'NOT_FOUND', message: '日记不存在' })
     res.json({ code: 0, data: { success: true } })
   } catch (e) {
@@ -52,8 +52,8 @@ export function deleteDiaryHandler(req, res) {
   }
 }
 
-export function generateAiSummaryHandler(req, res) {
-  const data = diaryService.generateSummary(req.spaceId, req.user.id, req.params.id)
+export async function generateAiSummaryHandler(req, res) {
+  const data = await diaryService.generateSummary(req.spaceId, req.user.id, req.params.id)
   if (!data) return res.status(404).json({ code: 'NOT_FOUND', message: '日记不存在或无权查看' })
   res.json({ code: 0, data })
 }
