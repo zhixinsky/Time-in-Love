@@ -31,6 +31,19 @@ export const api = {
 
   getBillSummary: (spaceId) => request(`/spaces/${spaceId}/bills/summary`),
 
+  listBills: (params = {}) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') search.set(key, String(value))
+    })
+    const qs = search.toString()
+    return request(`/bills${qs ? `?${qs}` : ''}`)
+  },
+
+  createBill: (data) => request('/bills', { method: 'POST', data }),
+
+  deleteBill: (id) => request(`/bills/${id}`, { method: 'DELETE' }),
+
   getLatestDiary: (spaceId) => request(`/spaces/${spaceId}/diaries/latest`),
 
   login: (code) => request('/auth/wechat-login', { method: 'POST', data: { code } }),

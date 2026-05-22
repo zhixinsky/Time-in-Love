@@ -40,6 +40,7 @@ import {
 } from '../controllers/diary-controller.js'
 import { uploadImageHandler, uploadVideoHandler } from '../controllers/upload-controller.js'
 import { loopListHandler } from '../controllers/music-controller.js'
+import { createBillHandler, deleteBillHandler, listBillsHandler } from '../controllers/bill-controller.js'
 import {
   adminCreateMusicHandler,
   adminDeleteMusicHandler,
@@ -125,6 +126,13 @@ diaryRouter.put('/:id', asyncHandler(updateDiaryHandler))
 diaryRouter.delete('/:id', asyncHandler(deleteDiaryHandler))
 diaryRouter.post('/:id/ai-summary', asyncHandler(generateAiSummaryHandler))
 apiRouter.use('/diaries', diaryRouter)
+
+const billRouter = Router()
+billRouter.use(requireAuth)
+billRouter.get('/', asyncHandler(listBillsHandler))
+billRouter.post('/', asyncHandler(createBillHandler))
+billRouter.delete('/:id', asyncHandler(deleteBillHandler))
+apiRouter.use('/bills', billRouter)
 
 const uploadRouter = Router()
 uploadRouter.use(requireAuth)

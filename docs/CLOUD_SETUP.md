@@ -69,6 +69,7 @@
 
 ```sql
 api/scripts/schema-space-v2.sql
+api/scripts/schema-bill-v1.sql
 ```
 
 ### 方式 B：API 服务内执行（部署后）
