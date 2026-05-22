@@ -38,6 +38,15 @@
       }
     },
     {
+      "path": "pages/anniversary/index",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true,
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+      }
+    },
+    {
       "path": "pages/ai/index",
       "style": {
         "navigationStyle": "custom",

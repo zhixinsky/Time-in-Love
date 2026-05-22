@@ -11,13 +11,17 @@ import {
 } from '../controllers/admin-controller.js'
 import {
   createInviteHandler,
+  createCurrentAnniversaryHandler,
   createSpaceHandler,
+  deleteCurrentAnniversaryHandler,
   getCurrentDashboardHandler,
   getCurrentSpaceHandler,
   getDashboardHandler,
   getSpaceHandler,
   joinSpaceHandler,
+  listCurrentAnniversariesHandler,
   listSpacesHandler,
+  updateCurrentAnniversaryHandler,
   updateCurrentSpaceHandler
 } from '../controllers/space-controller.js'
 import { getDashboard } from '../services/space-service.js'
@@ -80,6 +84,10 @@ apiRouter.get('/spaces/current', requireAuth, asyncHandler(getCurrentSpaceHandle
 apiRouter.get('/spaces/current/dashboard', requireAuth, asyncHandler(getCurrentDashboardHandler))
 apiRouter.patch('/spaces/current', requireAuth, asyncHandler(updateCurrentSpaceHandler))
 apiRouter.post('/spaces/current/invite', requireAuth, asyncHandler(createInviteHandler))
+apiRouter.get('/spaces/current/anniversaries', requireAuth, asyncHandler(listCurrentAnniversariesHandler))
+apiRouter.post('/spaces/current/anniversaries', requireAuth, asyncHandler(createCurrentAnniversaryHandler))
+apiRouter.patch('/spaces/current/anniversaries/:id', requireAuth, asyncHandler(updateCurrentAnniversaryHandler))
+apiRouter.delete('/spaces/current/anniversaries/:id', requireAuth, asyncHandler(deleteCurrentAnniversaryHandler))
 apiRouter.get('/spaces/:spaceId', asyncHandler(getSpaceHandler))
 apiRouter.get('/spaces/:spaceId/dashboard', asyncHandler(getDashboardHandler))
 apiRouter.get('/spaces/:spaceId/anniversaries', asyncHandler(async (req, res) => {

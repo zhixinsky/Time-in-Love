@@ -6,6 +6,13 @@ import { createId } from '../utils/id.js'
 
 const memorySpaces = new Map(seed.spaces.map((space) => [space.id, { ...space }]))
 const memoryMembers = new Map([['u_me', 'space_demo'], ['u_ta', 'space_demo']])
+const memoryAnniversaries = new Map()
+
+seed.anniversaries.forEach((item) => {
+  const list = memoryAnniversaries.get(item.spaceId) || []
+  list.push({ ...item })
+  memoryAnniversaries.set(item.spaceId, list)
+})
 
 function normalizeSpace(space) {
   if (!space) return null
@@ -26,7 +33,7 @@ function getDashboardFromSeed(spaceId) {
 
   const loveStartDate = space.loveStartDate || space.firstJoinedAt
   const loveDays = daysBetween(loveStartDate)
-  const anniversaries = seed.anniversaries.filter((a) => a.spaceId === spaceId)
+  const anniversaries = memoryAnniversaries.get(spaceId) || seed.anniversaries.filter((a) => a.spaceId === spaceId)
   const milestone = anniversaries.find((a) => a.repeatType === 'yearly' && isSameMonthDay(a.date))
   let currentAnniversaryName = milestone?.title || ''
   if (!currentAnniversaryName && [99, 100, 365, 520, 999, 1314].includes(loveDays)) {
@@ -194,6 +201,74 @@ export async function joinSpaceByInvite(userId, inviteCode) {
   }
   memoryMembers.set(userId, target.id)
   return normalizeSpace(target)
+}
+
+export async function listCurrentAnniversaries(spaceId) {
+  if (isDbEnabled()) {
+    try {
+      return (await dbRepo.listAnniversaries(spaceId)) || []
+    } catch (err) {
+      console.error('[space-service] db list anniversaries failed, fallback memory', err.message)
+    }
+  }
+  return memoryAnniversaries.get(spaceId) || []
+}
+
+export async function createCurrentAnniversary(spaceId, payload = {}) {
+  if (!payload.date) {
+    const err = new Error('请选择纪念日日期')
+    err.status = 400
+    err.code = 'ANNIVERSARY_DATE_REQUIRED'
+    throw err
+  }
+  if (isDbEnabled()) {
+    try {
+      return await dbRepo.createAnniversary(spaceId, payload)
+    } catch (err) {
+      console.error('[space-service] db create anniversary failed, fallback memory', err.message)
+    }
+  }
+  const item = {
+    id: createId('a'),
+    spaceId,
+    title: payload.title || '新的纪念日',
+    date: payload.date,
+    repeatType: payload.repeatType || 'yearly'
+  }
+  const list = memoryAnniversaries.get(spaceId) || []
+  list.push(item)
+  memoryAnniversaries.set(spaceId, list)
+  return item
+}
+
+export async function updateCurrentAnniversary(spaceId, id, payload = {}) {
+  if (isDbEnabled()) {
+    try {
+      return await dbRepo.updateAnniversary(spaceId, id, payload)
+    } catch (err) {
+      console.error('[space-service] db update anniversary failed, fallback memory', err.message)
+    }
+  }
+  const list = memoryAnniversaries.get(spaceId) || []
+  const index = list.findIndex((item) => item.id === id)
+  if (index < 0) return null
+  list[index] = { ...list[index], ...payload }
+  memoryAnniversaries.set(spaceId, list)
+  return list[index]
+}
+
+export async function deleteCurrentAnniversary(spaceId, id) {
+  if (isDbEnabled()) {
+    try {
+      return await dbRepo.deleteAnniversary(spaceId, id)
+    } catch (err) {
+      console.error('[space-service] db delete anniversary failed, fallback memory', err.message)
+    }
+  }
+  const list = memoryAnniversaries.get(spaceId) || []
+  const next = list.filter((item) => item.id !== id)
+  memoryAnniversaries.set(spaceId, next)
+  return next.length !== list.length
 }
 
 export async function getAdminOverview() {

@@ -19,6 +19,14 @@ export const api = {
 
   listAnniversaries: (spaceId) => request(`/spaces/${spaceId}/anniversaries`),
 
+  listCurrentAnniversaries: () => request('/spaces/current/anniversaries'),
+
+  createAnniversary: (data) => request('/spaces/current/anniversaries', { method: 'POST', data }),
+
+  updateAnniversary: (id, data) => request(`/spaces/current/anniversaries/${id}`, { method: 'PATCH', data }),
+
+  deleteAnniversary: (id) => request(`/spaces/current/anniversaries/${id}`, { method: 'DELETE' }),
+
   listMoods: (spaceId) => request(`/spaces/${spaceId}/moods`),
 
   getBillSummary: (spaceId) => request(`/spaces/${spaceId}/bills/summary`),

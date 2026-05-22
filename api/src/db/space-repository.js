@@ -130,6 +130,60 @@ export async function findDashboard(spaceId) {
   }
 }
 
+export async function listAnniversaries(spaceId) {
+  return dbQuery(
+    `SELECT id, space_id AS spaceId, title, anniversary_date AS date, repeat_type AS repeatType
+     FROM anniversaries WHERE space_id = ? ORDER BY anniversary_date ASC`,
+    [spaceId]
+  )
+}
+
+export async function createAnniversary(spaceId, payload = {}) {
+  const id = createId('a')
+  await dbExecute(
+    `INSERT INTO anniversaries (id, space_id, title, anniversary_date, repeat_type)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, spaceId, payload.title || '新的纪念日', payload.date, payload.repeatType || 'yearly']
+  )
+  const rows = await dbQuery(
+    `SELECT id, space_id AS spaceId, title, anniversary_date AS date, repeat_type AS repeatType
+     FROM anniversaries WHERE id = ? LIMIT 1`,
+    [id]
+  )
+  return rows?.[0] || null
+}
+
+export async function updateAnniversary(spaceId, id, payload = {}) {
+  const fields = []
+  const params = []
+  const map = {
+    title: 'title',
+    date: 'anniversary_date',
+    repeatType: 'repeat_type'
+  }
+  Object.entries(map).forEach(([key, column]) => {
+    if (payload[key] !== undefined) {
+      fields.push(`${column} = ?`)
+      params.push(payload[key])
+    }
+  })
+  if (fields.length) {
+    params.push(spaceId, id)
+    await dbExecute(`UPDATE anniversaries SET ${fields.join(', ')} WHERE space_id = ? AND id = ?`, params)
+  }
+  const rows = await dbQuery(
+    `SELECT id, space_id AS spaceId, title, anniversary_date AS date, repeat_type AS repeatType
+     FROM anniversaries WHERE space_id = ? AND id = ? LIMIT 1`,
+    [spaceId, id]
+  )
+  return rows?.[0] || null
+}
+
+export async function deleteAnniversary(spaceId, id) {
+  const result = await dbExecute('DELETE FROM anniversaries WHERE space_id = ? AND id = ?', [spaceId, id])
+  return Number(result?.affectedRows || 0) > 0
+}
+
 export async function listAllSpaces() {
   return dbQuery(
     `SELECT id, name, subtitle, first_joined_at AS firstJoinedAt,
