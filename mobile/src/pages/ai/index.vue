@@ -1,16 +1,13 @@
 <template>
   <view class="safe-page ai-page app-nav-page">
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner simple">
-        <view class="app-nav ai-head">
-          <view class="app-nav__main">
-            <view class="app-nav__copy">
-              <text class="app-nav__title">AI星芽</text>
-              <text class="app-nav__subtitle">帮你把喜欢说得更温柔</text>
-            </view>
-          </view>
-          <image class="avatar-img app-nav__action" :src="CLOUD_LOGO" mode="aspectFit" />
-        </view>
+        <PageNavBar title="AI星芽" subtitle="帮你把喜欢说得更温柔" :show-back="false">
+          <template #action>
+            <image class="avatar-img app-nav__action" :src="CLOUD_LOGO" mode="aspectFit" />
+          </template>
+        </PageNavBar>
 
         <view class="features">
           <view
@@ -54,6 +51,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { CLOUD_LOGO } from '../../config'

@@ -1,18 +1,15 @@
 <template>
   <view class="safe-page bill-page app-nav-page">
-    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="app-nav">
-          <view class="app-nav__main">
-            <view class="app-nav__copy">
-              <text class="app-nav__title">恋爱小记账</text>
-            </view>
-          </view>
-          <picker mode="date" fields="month" :value="bill.month" @change="changeMonth">
-            <view class="month-picker app-nav__action">{{ bill.month }} ▾</view>
-          </picker>
-        </view>
+        <PageNavBar title="恋爱小记账" :show-back="false">
+          <template #action>
+            <picker mode="date" fields="month" :value="bill.month" @change="changeMonth">
+              <view class="month-picker app-nav__action">{{ bill.month }} ▾</view>
+            </picker>
+          </template>
+        </PageNavBar>
 
         <view class="card summary-card">
           <view>
@@ -89,11 +86,12 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useBillStore } from '../../stores/bill'
 import { useLoveStore } from '../../stores/love'
-import { CLOUD_LOVE_BG } from '../../config'
 
 const bill = useBillStore()
 const love = useLoveStore()
@@ -171,18 +169,6 @@ function removeItem(item) {
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.bill-page {
-  background: #fff4fa;
-}
-
-.page-bg {
-  position: absolute;
-  top: -200rpx;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-}
 
 .month-picker {
   padding: 16rpx 24rpx;

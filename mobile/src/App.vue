@@ -24,22 +24,29 @@ export default {
 </script>
 
 <style lang="scss">
+@use './styles/animation.scss';
 @use './styles/theme.scss' as *;
 
 page {
   min-height: 100%;
   color: $text-main;
-  background: #fff4fa;
+  @include romantic-page-gradient-fill;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 view,
 text,
-scroll-view,
 button,
 input,
 textarea {
   box-sizing: border-box;
+}
+
+scroll-view,
+scroll-view.content-scroll {
+  box-sizing: border-box;
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 button {
@@ -54,19 +61,19 @@ button::after {
   border: 0;
 }
 
-.app-nav-page .page-inner {
-  padding-top: 0;
-}
-
-.app-nav {
+/* 子页标题区：垂直间距由 .page-hero-nav 承担，与首页 .hero 一致 */
+.app-nav--flat {
   position: relative;
   z-index: 10;
+  margin: 0;
+  padding: 0 0 28rpx;
+}
+
+.app-nav__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 76rpx;
-  padding: 104rpx 210rpx 28rpx 42rpx;
-  margin: 0 -24rpx;
+  margin-top: $page-hero-row-gap-top;
   gap: 18rpx;
 }
 
@@ -74,6 +81,7 @@ button::after {
   display: flex;
   align-items: center;
   min-width: 0;
+  flex: 1;
   gap: 18rpx;
 }
 
@@ -84,19 +92,19 @@ button::after {
 .app-nav__title {
   display: block;
   color: $text-main;
-  font-size: 36rpx;
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: $page-title-font-size;
+  font-weight: 700;
+  line-height: $page-title-line-height;
   text-align: left;
 }
 
 .app-nav__subtitle {
   display: block;
   max-width: 430rpx;
-  margin-top: 10rpx;
+  margin-top: 12rpx;
   overflow: hidden;
   color: $text-soft;
-  font-size: 24rpx;
+  font-size: 26rpx;
   line-height: 1.3;
   text-align: left;
   text-overflow: ellipsis;
@@ -104,22 +112,37 @@ button::after {
 }
 
 .app-nav__back {
+  position: relative;
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 22rpx;
-  color: $text-main;
-  font-size: 52rpx;
-  font-weight: 300;
-  line-height: 1;
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: $shadow;
+  width: $page-title-music-size;
+  height: $page-title-music-size;
 }
 
-.app-nav__action {
+.app-nav__back-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1rpx solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 10rpx 26rpx rgba(196, 118, 172, 0.08),
+    inset 0 1rpx rgba(255, 255, 255, 0.46);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.app-nav__back-icon {
+  position: relative;
+  z-index: 1;
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: -4rpx;
+}
+
+.app-nav__action-wrap {
   flex-shrink: 0;
 }
 </style>

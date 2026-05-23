@@ -1,3 +1,5 @@
+@use './animation.scss' as anim;
+
 $pink: #ff8ab8;
 $pink-deep: #f45f9d;
 $purple: #c9a7ff;
@@ -12,23 +14,84 @@ $text-num: #3e3148;
 $card: rgba(255, 255, 255, 0.72);
 $shadow: 0 12rpx 40rpx rgba(255, 170, 210, 0.12);
 
-@mixin page-bg {
-  min-height: 100vh;
+/** 首页 hero 标题度量（仅布局，与 home-bg 图上移无关） */
+$page-hero-pad-top: 104rpx;
+$page-hero-row-gap-top: 10rpx;
+$page-hero-pad-left: 42rpx;
+$page-hero-pad-right: 210rpx;
+$page-title-font-size: 42rpx;
+$page-title-line-height: 1.1;
+/** 首页音乐按钮高度，.brand 与按钮垂直居中 */
+$page-title-music-size: 64rpx;
+/** Apple Liquid Glass 色板 */
+$liquid-purple: #dcceff;
+$mist-pink: #f1dce7;
+$cream-white: #fff7f5;
+$light-peach: #f8e7e1;
+
+/** 子页面：液态玻璃氛围底（≤6 层，兼容 Skyline 多层 background 上限） */
+@mixin romantic-page-gradient-fill {
+  background-color: $liquid-purple;
+  background-image:
+    radial-gradient(ellipse 72% 55% at 50% 38%, rgba(255, 255, 255, 0.72) 0%, rgba(255, 247, 245, 0.28) 42%, transparent 70%),
+    radial-gradient(ellipse 118% 78% at 50% -8%, rgba(220, 206, 255, 0.72) 0%, transparent 62%),
+    radial-gradient(ellipse 78% 58% at 8% 42%, rgba(241, 220, 231, 0.55) 0%, transparent 58%),
+    radial-gradient(ellipse 82% 58% at 92% 38%, rgba(220, 206, 255, 0.42) 0%, transparent 56%),
+    radial-gradient(ellipse 100% 58% at 50% 108%, rgba(248, 231, 225, 0.62) 0%, transparent 58%),
+    linear-gradient(
+      168deg,
+      #dcceff 0%,
+      #e4d8fa 12%,
+      #f1dce7 28%,
+      #f6e8ef 42%,
+      #fff7f5 58%,
+      #fff7f5 72%,
+      #f8e7e1 100%
+    );
+}
+
+/** 轻微液态漂浮光斑（叠在静态底之上） */
+@mixin liquid-glass-fluid-overlay {
+  background-image:
+    radial-gradient(ellipse 52% 40% at 28% 38%, rgba(220, 206, 255, 0.38) 0%, transparent 72%),
+    radial-gradient(ellipse 48% 36% at 72% 52%, rgba(241, 220, 231, 0.34) 0%, transparent 70%),
+    radial-gradient(ellipse 44% 34% at 52% 22%, rgba(255, 255, 255, 0.28) 0%, transparent 68%);
+  background-repeat: no-repeat;
+  background-size: 130% 130%, 125% 125%, 120% 120%;
+  animation: liquidGlassDrift 18s anim.$skyline-ease infinite alternate;
+  will-change: opacity, background-position;
+}
+
+/** Moona 恋爱时光页同款半透明玻璃 */
+@mixin moona-glass-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 32rpx;
   background:
-    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.9), transparent 24%),
-    radial-gradient(circle at 88% 8%, rgba(185, 156, 255, 0.22), transparent 30%),
-    linear-gradient(160deg, #fff6fb 0%, #ffe9f3 42%, #eee4ff 100%);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.48), rgba(255, 246, 252, 0.26)),
+    rgba(255, 255, 255, 0.28);
+  border: 1rpx solid rgba(255, 255, 255, 0.68);
+  box-shadow: 0 16rpx 46rpx rgba(164, 103, 164, 0.09), inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+}
+
+@mixin moona-memory-card {
+  margin-bottom: 28rpx;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.54), rgba(255, 247, 252, 0.32)),
+    rgba(255, 255, 255, 0.24);
+  border: 1rpx solid rgba(255, 255, 255, 0.74);
+  box-shadow: 0 12rpx 34rpx rgba(130, 88, 145, 0.075), inset 0 1rpx 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(142%);
+  -webkit-backdrop-filter: blur(20px) saturate(142%);
 }
 
 @mixin glass-card {
-  position: relative;
-  overflow: hidden;
-  border: 1rpx solid rgba(255, 255, 255, 0.45);
+  @include moona-glass-card;
   border-radius: 36rpx;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: $shadow;
-  backdrop-filter: blur(36rpx);
-  -webkit-backdrop-filter: blur(36rpx);
 }
 
 @mixin glass-card-shine {
@@ -47,26 +110,52 @@ $shadow: 0 12rpx 40rpx rgba(255, 170, 210, 0.12);
 }
 
 .safe-page {
-  @include page-bg;
   position: relative;
+  min-height: 100vh;
   overflow: visible;
+  background: transparent;
+  animation: skylinePageIn anim.$skyline-duration-page anim.$skyline-ease both;
+  will-change: opacity, transform;
 }
 
-.content-scroll {
+.home-page {
+  background: transparent;
+}
+
+/* scroll-view 在 Skyline 下默认不透明白底，必须显式透明并叠在背景层之上 */
+.content-scroll,
+.page-scroll {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   height: 100vh;
+  width: 100%;
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 .page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 100%;
   padding: 72rpx 24rpx 220rpx;
+  box-sizing: border-box;
+}
+
+/** 与首页 .hero 相同的外层：page-inner 72rpx + margin -72rpx 抵消，再 +104rpx 顶距 */
+.page-hero-nav {
+  margin: -72rpx -24rpx 0;
+  padding: $page-hero-pad-top $page-hero-pad-right 0 $page-hero-pad-left;
 }
 
 .card {
   @include glass-card;
   @include glass-card-shine;
   margin-bottom: 28rpx;
-  animation: cardFloat 6s ease-in-out infinite;
+  animation:
+    skylineCardIn anim.$skyline-duration-card anim.$skyline-ease both,
+    cardFloat 6s ease-in-out calc(#{anim.$skyline-duration-card} + 80ms) infinite;
+  will-change: opacity, transform;
 }
 
 .icon-bubble {

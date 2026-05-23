@@ -155,8 +155,10 @@ function ensureManager() {
   manager.onEnded(() => {
     playRandomNext()
   })
-  manager.onError(() => {
+  manager.onError((res) => {
     isMusicPlaying.value = false
+    const detail = res && typeof res === 'object' ? res.errMsg || res.message : ''
+    if (detail) console.warn('[love-music] play error', detail)
     showMusicToast({ title: '音乐暂时无法播放', icon: 'none' })
   })
   manager.onTimeUpdate(() => {

@@ -1,17 +1,12 @@
 <template>
   <view class="safe-page qa-page app-nav-page">
-    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="app-nav">
-          <view class="app-nav__main">
-            <view class="app-nav__back tap-scale" @tap="goHome">‹</view>
-            <view class="app-nav__copy">
-              <text class="app-nav__title">甜蜜问答</text>
-              <text class="app-nav__subtitle">每天回答一个更靠近彼此的问题</text>
-            </view>
-          </view>
-        </view>
+        <PageNavBar
+          title="甜蜜问答"
+          subtitle="每天回答一个更靠近彼此的问题"
+        />
 
         <view class="card question-card">
           <view class="question-tag">{{ qa.today?.question?.category || '今日' }}</view>
@@ -56,10 +51,11 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useQaStore } from '../../stores/qa'
-import { CLOUD_LOVE_BG } from '../../config'
 
 const qa = useQaStore()
 const sheetVisible = ref(false)
@@ -87,25 +83,10 @@ async function saveAnswer() {
   uni.showToast({ title: '已保存', icon: 'success' })
 }
 
-function goHome() {
-  uni.redirectTo({ url: '/pages/home/index' })
-}
 </script>
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.qa-page {
-  background: #fff4fa;
-}
-
-.page-bg {
-  position: absolute;
-  top: -200rpx;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-}
 
 .question-card,
 .answer-card,

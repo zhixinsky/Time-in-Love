@@ -1,0 +1,205 @@
+/** Skyline 风格动效：仅 opacity + transform，无 setData */
+
+$skyline-ease: cubic-bezier(0.22, 1, 0.36, 1);
+$skyline-duration-page: 380ms;
+$skyline-duration-card: 400ms;
+$skyline-duration-sheet: 380ms;
+$skyline-lift: 48rpx; /* 24px @2x */
+
+@keyframes skylinePageIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, $skyline-lift, 0) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes skylinePageOut {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate3d(0, 24rpx, 0) scale(0.99);
+  }
+}
+
+@keyframes skylineCardIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, $skyline-lift, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sheetMaskIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetPanelIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes orbGradientBreath {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes orbOrbScale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/** Liquid Glass 背景：极慢漂浮光斑，仅 opacity + background-position */
+@keyframes liquidGlassDrift {
+  0% {
+    opacity: 0.42;
+    background-position:
+      0% 20%,
+      100% 60%,
+      48% 0%;
+  }
+
+  50% {
+    opacity: 0.68;
+    background-position:
+      55% 45%,
+      35% 75%,
+      72% 38%;
+  }
+
+  100% {
+    opacity: 0.48;
+    background-position:
+      85% 30%,
+      15% 85%,
+      28% 55%;
+  }
+}
+
+/** 页面根容器：进入时淡入上浮微缩放 */
+.skyline-page-enter {
+  animation: skylinePageIn $skyline-duration-page $skyline-ease both;
+  will-change: opacity, transform;
+}
+
+/** 卡片进入 */
+.skyline-card-enter {
+  animation: skylineCardIn $skyline-duration-card $skyline-ease both;
+  will-change: opacity, transform;
+}
+
+@for $i from 1 through 12 {
+  .skyline-card-enter--#{$i} {
+    animation-delay: #{60ms + $i * 50ms};
+  }
+}
+
+.page-inner .glass-card {
+  animation: skylineCardIn $skyline-duration-card $skyline-ease both;
+  will-change: opacity, transform;
+}
+
+@for $i from 1 through 16 {
+  .page-inner .glass-card:nth-of-type(#{$i}) {
+    animation-delay: #{($i - 1) * 55ms};
+  }
+}
+
+/** 弹窗遮罩 + 面板 */
+.skyline-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  padding: 32rpx;
+  pointer-events: auto;
+}
+
+.skyline-sheet-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(74, 44, 66, 0.22);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: sheetMaskIn $skyline-duration-sheet $skyline-ease both;
+  will-change: opacity;
+}
+
+.skyline-sheet-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  animation: sheetPanelIn 420ms $skyline-ease both;
+  will-change: opacity, transform;
+}
+
+/** TabBar AI 米粒按钮呼吸光晕 */
+.skyline-orb-breath {
+  position: relative;
+  animation: orbOrbScale 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.skyline-orb-breath::before {
+  position: absolute;
+  inset: -10rpx;
+  z-index: 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 143, 183, 0.65) 0%,
+    rgba(201, 167, 255, 0.55) 48%,
+    rgba(255, 220, 235, 0.45) 100%
+  );
+  opacity: 0.55;
+  animation: orbGradientBreath 3.6s ease-in-out infinite;
+  content: '';
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.skyline-orb-breath > .orb-logo,
+.skyline-orb-breath .orb-logo {
+  position: relative;
+  z-index: 1;
+}

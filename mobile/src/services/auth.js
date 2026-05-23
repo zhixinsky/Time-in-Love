@@ -6,8 +6,11 @@ function wxLoginCode() {
     // #ifdef MP-WEIXIN
     uni.login({
       provider: 'weixin',
-      success: (res) => resolve(res.code),
-      fail: reject
+      success: (res) => {
+        if (res?.code) resolve(res.code)
+        else reject(new Error('微信登录未返回 code'))
+      },
+      fail: (err) => reject(new Error(err?.errMsg || err?.message || '微信登录失败'))
     })
     // #endif
     // #ifndef MP-WEIXIN

@@ -59,14 +59,32 @@ function normalizeBody(res) {
   return body
 }
 
+/** 微信 fail 回调有时不传参，避免框架/internal 读 undefined.errMsg */
+function normalizeWxFail(err, fallback = '请求失败') {
+  if (err instanceof Error) return err
+  if (err && typeof err === 'object') {
+    const msg = err.errMsg || err.message || fallback
+    return new Error(String(msg))
+  }
+  return new Error(fallback)
+}
+
 function formatCloudError(err) {
-  const msg = String(err?.errMsg || err?.message || err || '')
+  const msg = String(
+    (err && typeof err === 'object' && (err.errMsg || err.message)) ||
+      (typeof err === 'string' ? err : '') ||
+      '请求失败'
+  )
   if (/INVALID_HOST|invalid host|-501000/i.test(msg)) {
     return new Error(
       `云托管 INVALID_HOST：请在开发者工具「云开发」选择环境 ${WX_CLOUD_ENV_ID}，并在 config 中把 WX_CLOUD_SERVICE 改成控制台「服务列表」里的名称（当前为 ${WX_CLOUD_SERVICE}，不要带版本号）。或填写 CLOUD_RUN_PUBLIC_BASE 走公网 HTTPS。`
     )
   }
   return err instanceof Error ? err : new Error(msg || '请求失败')
+}
+
+function rejectWxFail(reject, fallback) {
+  return (err) => reject(normalizeWxFail(err, fallback))
 }
 
 /** 微信云托管 callContainer */
@@ -105,7 +123,7 @@ function cloudRequest(path, options = {}) {
         reject(body?.message ? new Error(body.message) : new Error(`HTTP ${status}`))
       },
       fail(err) {
-        reject(formatCloudError(err))
+        reject(formatCloudError(err ?? { errMsg: '云托管请求失败' }))
       }
     })
     // #endif
@@ -136,7 +154,7 @@ function httpRequest(path, options = {}) {
           reject(e)
         }
       },
-      fail: reject
+      fail: rejectWxFail(reject, '网络请求失败')
     })
   })
 }
@@ -208,7 +226,7 @@ export function uploadFile(path, filePath, formData = {}) {
             duration: Number(formData.duration || 0)
           })
         },
-        fail: reject
+        fail: rejectWxFail(reject, '云存储上传失败')
       })
     })
   }
@@ -231,7 +249,7 @@ export function uploadFile(path, filePath, formData = {}) {
           reject(e)
         }
       },
-      fail: reject
+      fail: rejectWxFail(reject, '文件上传失败')
     })
   })
 }

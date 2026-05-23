@@ -1,17 +1,12 @@
 <template>
   <view class="safe-page checklist-page app-nav-page">
-    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="app-nav">
-          <view class="app-nav__main">
-            <view class="app-nav__back tap-scale" @tap="goHome">‹</view>
-            <view class="app-nav__copy">
-              <text class="app-nav__title">恋爱清单</text>
-              <text class="app-nav__subtitle">一起完成那些想做的小事</text>
-            </view>
-          </view>
-        </view>
+        <PageNavBar
+          title="恋爱清单"
+          subtitle="一起完成那些想做的小事"
+        />
 
         <view class="card progress-card">
           <view class="progress-top">
@@ -67,10 +62,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useChecklistStore } from '../../stores/checklist'
-import { CLOUD_LOVE_BG } from '../../config'
 import { formatDate } from '../../utils/date'
 
 const checklist = useChecklistStore()
@@ -128,25 +124,10 @@ function formatDone(value) {
   return `${formatDate(value)}完成`
 }
 
-function goHome() {
-  uni.redirectTo({ url: '/pages/home/index' })
-}
 </script>
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.checklist-page {
-  background: #fff4fa;
-}
-
-.page-bg {
-  position: absolute;
-  top: -200rpx;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-}
 
 .progress-card {
   padding: 34rpx;

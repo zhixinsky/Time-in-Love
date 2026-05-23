@@ -1,68 +1,54 @@
 <template>
-  <view class="safe-page diary-page">
-    <image class="diary-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+  <view class="safe-page diary-page app-nav-page">
+    <PageLiquidBg />
+    <scroll-view class="content-scroll" scroll-y enable-flex :show-scrollbar="false">
+      <view class="page-inner">
+        <PageNavBar title="心动日记" :show-back="false">
+          <template #action>
+            <picker mode="date" :value="diary.selectedDate" @change="onPickDate">
+              <view class="nav-calendar app-nav__action tap-scale">
+                <text class="cal-icon">▦</text>
+              </view>
+            </picker>
+          </template>
+        </PageNavBar>
 
-    <view class="app-nav diary-nav">
-      <view class="app-nav__main">
-        <view class="app-nav__back tap-scale" @tap="goHome">
-          <text>‹</text>
-        </view>
-        <view class="app-nav__copy">
-          <text class="app-nav__title">心动日记</text>
-        </view>
-      </view>
-      <view class="nav-right app-nav__action">
-        <picker mode="date" :value="diary.selectedDate" @change="onPickDate">
-          <view class="nav-calendar tap-scale">
-            <text class="cal-icon">▦</text>
-          </view>
-        </picker>
-      </view>
-    </view>
-
-    <scroll-view
-      class="diary-scroll"
-      scroll-y
-      enable-flex
-      :show-scrollbar="false"
-      enhanced
-    >
-      <view
-        class="week-strip"
-        @touchstart="onWeekTouchStart"
-        @touchend="onWeekTouchEnd"
-      >
-        <view class="week-row">
-          <view
-            v-for="item in diary.weekDays"
-            :key="item.ymd"
-            class="week-day tap-scale"
-            @tap="onSelectDate(item.ymd)"
-          >
-            <text :class="['week-label', { active: item.ymd === diary.selectedDate }]">
-              {{ item.weekday }}
-            </text>
+        <view
+          class="week-strip"
+          @touchstart="onWeekTouchStart"
+          @touchend="onWeekTouchEnd"
+        >
+          <view class="week-row">
             <view
-              :class="['week-ring', { active: item.ymd === diary.selectedDate }]"
+              v-for="item in diary.weekDays"
+              :key="item.ymd"
+              class="week-day tap-scale"
+              @tap="onSelectDate(item.ymd)"
             >
-              <text class="week-num">{{ item.day }}</text>
+              <text :class="['week-label', { active: item.ymd === diary.selectedDate }]">
+                {{ item.weekday }}
+              </text>
+              <view
+                :class="['week-ring', { active: item.ymd === diary.selectedDate }]"
+              >
+                <text class="week-num">{{ item.day }}</text>
+              </view>
+              <view v-if="item.ymd === diary.selectedDate" class="week-dot" />
             </view>
-            <view v-if="item.ymd === diary.selectedDate" class="week-dot" />
           </view>
         </view>
-      </view>
 
-      <view v-if="diary.loading" class="glass-card diary-loading">
+        <view v-if="diary.loading" class="glass-card diary-loading">
         <text>正在加载心动日记…</text>
       </view>
 
-      <view v-else-if="!hasDiary" class="glass-card empty-card card-fade">
+        <view v-else-if="!hasDiary" class="glass-card empty-card">
         <text class="empty-title">今天还没有记录心动瞬间</text>
         <text class="empty-copy">写下这一刻，让以后也能想起今天</text>
         <button class="empty-btn tap-scale" @tap="openEdit">去记录</button>
       </view>
 
-      <view v-else class="glass-card diary-card card-fade">
+      <view v-else class="glass-card diary-card">
         <view class="diary-deco" aria-hidden="true">
           <text class="quote-mark">“</text>
         </view>
@@ -124,7 +110,7 @@
         </view>
       </view>
 
-      <view v-if="hasDiary" class="glass-card ai-card card-fade card-fade--delay">
+      <view v-if="hasDiary" class="glass-card ai-card">
         <view class="ai-copy">
           <text class="ai-label">AI星芽的小记</text>
           <text v-if="displayAi" class="ai-text">{{ displayAi }}</text>
@@ -152,7 +138,7 @@
         <view
           v-for="(item, index) in diary.timelineList"
           :key="item.id"
-          class="history-item glass-card tap-scale card-fade"
+          class="history-item glass-card tap-scale"
           @tap="openTimelineItem(item)"
         >
           <view class="history-timeline" aria-hidden="true">
@@ -178,7 +164,8 @@
         </view>
       </view>
 
-      <view class="scroll-bottom-spacer" />
+        <view class="scroll-bottom-spacer" />
+      </view>
     </scroll-view>
 
     <view class="bottom-bar">
@@ -187,21 +174,31 @@
         <text>记录心动瞬间</text>
       </button>
     </view>
+    <LoveTabBar active="diary" @create="sheetVisible = true" />
+    <QuickSheet :visible="sheetVisible" @close="sheetVisible = false" />
   </view>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
+import LoveTabBar from '../../components/LoveTabBar.vue'
+import QuickSheet from '../../components/QuickSheet.vue'
 import { useDiaryStore } from '../../stores/diary'
-import { CLOUD_LOVE_BG } from '../../config'
-
 import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl } from '../../services/request'
 
 const diary = useDiaryStore()
 const expanded = ref(false)
+const sheetVisible = ref(false)
 let weekTouchX = 0
+let pendingDate = ''
+
+onLoad((options) => {
+  if (options?.date) pendingDate = decodeURIComponent(options.date)
+})
 
 const hasDiary = computed(() => Boolean(diary.currentDiary?.id))
 
@@ -312,10 +309,6 @@ function openEdit() {
   uni.navigateTo({ url: `/pages/diary/edit?${q.join('&')}` })
 }
 
-function goHome() {
-  uni.redirectTo({ url: '/pages/home/index' })
-}
-
 function openTimelineItem(item) {
   diary.selectDate(item.date)
 }
@@ -324,38 +317,18 @@ function showAllTip() {
   uni.showToast({ title: '时间线展示最近记录', icon: 'none' })
 }
 
-onShow(() => {
-  diary.initPage()
+onShow(async () => {
+  await diary.initPage()
+  if (pendingDate) {
+    const date = pendingDate
+    pendingDate = ''
+    await diary.selectDate(date)
+  }
 })
 </script>
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.diary-page {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.diary-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.diary-nav {
-  margin: 0;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
 
 .nav-calendar {
   width: 64rpx;
@@ -372,14 +345,6 @@ onShow(() => {
   font-size: 32rpx;
   color: #b99cff;
   font-weight: 700;
-}
-
-.diary-scroll {
-  position: relative;
-  z-index: 5;
-  height: calc(100vh - 212rpx);
-  padding: 0 24rpx;
-  box-sizing: border-box;
 }
 
 .week-strip {
@@ -448,25 +413,6 @@ onShow(() => {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 12rpx 40rpx rgba(255, 170, 210, 0.12);
-}
-
-.card-fade {
-  animation: cardFadeIn 0.45s ease both;
-}
-
-.card-fade--delay {
-  animation-delay: 0.1s;
-}
-
-@keyframes cardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(16rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .diary-loading,
@@ -846,15 +792,17 @@ onShow(() => {
 }
 
 .scroll-bottom-spacer {
-  height: 150rpx;
+  /* 为底部「记录」按钮 + TabBar 留白 */
+  height: 300rpx;
 }
 
 .bottom-bar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(24rpx + env(safe-area-inset-bottom));
-  z-index: 20;
+  /* 悬在 TabBar 上方（TabBar 约 100rpx + 底边距） */
+  bottom: calc(132rpx + env(safe-area-inset-bottom));
+  z-index: 18;
   display: flex;
   justify-content: center;
   pointer-events: none;

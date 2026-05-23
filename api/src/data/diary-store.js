@@ -163,7 +163,13 @@ export function getTimeline(spaceId, userId, page = 1, pageSize = 10) {
       mood: d.mood,
       isAnniversary: isAnniversary(spaceId, d.diaryDate),
       author: authorOf(d.userId).nickname,
-      content: d.content
+      content: d.content,
+      mediaList: getMediaByDiaryId(d.id).map((m) => ({
+        type: m.type,
+        url: m.url,
+        coverUrl: m.coverUrl || '',
+        duration: m.duration || 0
+      }))
     }))
   }
 }

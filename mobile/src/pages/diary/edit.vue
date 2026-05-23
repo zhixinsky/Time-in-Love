@@ -1,20 +1,14 @@
 <template>
-  <view class="safe-page edit-page">
-    <image class="edit-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+  <view class="safe-page edit-page app-nav-page">
+    <PageLiquidBg />
+    <scroll-view class="content-scroll" scroll-y enable-flex :show-scrollbar="false">
+      <view class="page-inner">
+        <PageNavBar
+          :title="isEdit ? '编辑心动日记' : '记录心动瞬间'"
+          back-mode="back"
+        />
 
-    <view class="app-nav edit-nav">
-      <view class="app-nav__main">
-        <view class="app-nav__back tap-scale" @tap="goBack">
-          <text>‹</text>
-        </view>
-        <view class="app-nav__copy">
-          <text class="app-nav__title">{{ isEdit ? '编辑心动日记' : '记录心动瞬间' }}</text>
-        </view>
-      </view>
-    </view>
-
-    <scroll-view class="edit-scroll" scroll-y enable-flex :show-scrollbar="false" enhanced>
-      <view class="glass-card edit-card">
+        <view class="glass-card edit-card">
         <text class="field-label">心动文字</text>
         <textarea
           v-model="form.content"
@@ -138,8 +132,9 @@
           <text class="switch-label">发布后生成 AI 小记</text>
           <switch :checked="form.needAiSummary" color="#FF82AE" @change="onAiSwitch" />
         </view>
+        </view>
+        <view class="scroll-bottom-spacer" />
       </view>
-      <view class="scroll-bottom-spacer" />
     </scroll-view>
 
     <view class="bottom-bar">
@@ -153,10 +148,10 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import { useDiaryStore } from '../../stores/diary'
 import { useAuthStore } from '../../stores/auth'
-import { CLOUD_LOVE_BG } from '../../config'
-
 import diaryApi from '../../services/diary'
 import { formatYmd, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl, uploadFile } from '../../services/request'
@@ -201,10 +196,6 @@ const mediaPreview = computed(() =>
 
 const imageCount = computed(() => form.mediaList.filter((m) => m.type === 'image').length)
 const hasVideo = computed(() => form.mediaList.some((m) => m.type === 'video'))
-
-function goBack() {
-  uni.navigateBack()
-}
 
 function onDateChange(e) {
   form.diaryDate = e.detail.value
@@ -360,32 +351,6 @@ onLoad((query) => {
 </script>
 
 <style lang="scss" scoped>
-.edit-page {
-  position: relative;
-  min-height: 100vh;
-}
-
-.edit-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.edit-nav {
-  margin: 0;
-}
-
-.edit-scroll {
-  position: relative;
-  z-index: 5;
-  height: calc(100vh - 212rpx);
-  padding: 0 24rpx;
-  box-sizing: border-box;
-}
-
 .glass-card {
   border-radius: 32rpx;
   background: rgba(255, 255, 255, 0.72);

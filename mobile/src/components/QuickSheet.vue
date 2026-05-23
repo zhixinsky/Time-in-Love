@@ -1,6 +1,7 @@
 <template>
-  <view v-if="visible" class="sheet-mask" @tap="$emit('close')">
-    <view class="sheet card" @tap.stop>
+  <view v-if="visible" class="skyline-sheet-root" @tap="$emit('close')">
+    <view class="skyline-sheet-mask" />
+    <view class="skyline-sheet-panel card sheet" @tap.stop>
       <view class="sheet-handle"></view>
       <view class="sheet-title">记录新的心动</view>
       <view class="quick-grid">
@@ -40,18 +41,7 @@ function select(item) {
 <style lang="scss" scoped>
 @use '../styles/theme.scss' as *;
 
-.sheet-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  padding: 32rpx;
-  background: rgba(74, 44, 66, 0.18);
-}
-
 .sheet {
-  width: 100%;
   padding: 20rpx 26rpx 38rpx;
   border-radius: 36rpx;
 }

@@ -1,14 +1,8 @@
 <template>
   <view class="safe-page profile-page app-nav-page">
+    <PageLiquidBg />
     <view class="page-inner simple">
-      <view class="app-nav">
-        <view class="app-nav__main">
-          <view class="app-nav__copy">
-            <text class="app-nav__title">我的</text>
-            <text class="app-nav__subtitle">管理你们的恋爱空间</text>
-          </view>
-        </view>
-      </view>
+      <PageNavBar title="我的" subtitle="管理你们的恋爱空间" :show-back="false" />
       <view class="card profile-card">
         <image v-if="couplePhotoUrl" class="avatar-img" :src="couplePhotoUrl" mode="aspectFill" />
         <image v-else class="avatar-img" :src="CLOUD_LOGO" mode="aspectFill" />
@@ -38,6 +32,8 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useLoveStore } from '../../stores/love'
@@ -102,7 +98,7 @@ async function invitePartner() {
       showCancel: false
     })
   } catch (e) {
-    uni.showToast({ title: e.message || '生成失败', icon: 'none' })
+    uni.showToast({ title: e?.message || e?.errMsg || '生成失败', icon: 'none' })
   }
 }
 
@@ -118,7 +114,7 @@ function joinPartnerSpace() {
         await love.joinByInvite(inviteCode)
         uni.showToast({ title: '加入成功', icon: 'success' })
       } catch (e) {
-        uni.showToast({ title: e.message || '加入失败', icon: 'none' })
+        uni.showToast({ title: e?.message || e?.errMsg || '加入失败', icon: 'none' })
       }
     }
   })

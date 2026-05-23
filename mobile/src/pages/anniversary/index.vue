@@ -1,17 +1,12 @@
 <template>
   <view class="safe-page anniversary-page app-nav-page">
-    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="app-nav">
-          <view class="app-nav__main">
-            <view class="app-nav__back tap-scale" @tap="goHome">‹</view>
-            <view class="app-nav__copy">
-              <text class="app-nav__title">纪念日</text>
-              <text class="app-nav__subtitle">把每个心动日期都好好收藏</text>
-            </view>
-          </view>
-        </view>
+        <PageNavBar
+          title="纪念日"
+          subtitle="把每个心动日期都好好收藏"
+        />
 
         <view class="card add-card">
           <view>
@@ -85,11 +80,12 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useAnniversaryStore } from '../../stores/anniversary'
 import { useLoveStore } from '../../stores/love'
-import { CLOUD_LOVE_BG } from '../../config'
 import { formatDate } from '../../utils/date'
 
 const anniversary = useAnniversaryStore()
@@ -180,25 +176,10 @@ function repeatLabel(type) {
   return type === 'once' ? '一次' : '每年'
 }
 
-function goHome() {
-  uni.redirectTo({ url: '/pages/home/index' })
-}
 </script>
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.anniversary-page {
-  background: #fff4fa;
-}
-
-.page-bg {
-  position: absolute;
-  top: -200rpx;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-}
 
 .add-card {
   display: flex;

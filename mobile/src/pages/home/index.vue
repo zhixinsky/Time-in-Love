@@ -91,53 +91,7 @@
           </view>
         </view>
 
-        <button class="mood-card card" @tap="noop">
-          <view class="card-body-left">
-            <text class="soft-title">今日心情打卡</text>
-            <text class="soft-subtitle">记录我们的心情吧</text>
-            <view class="avatars">
-              <view v-for="item in love.moods" :key="item.owner" class="mood-avatar-bubble">
-                <view class="mood-avatar-face">{{ item.avatar }}</view>
-                <text class="mood-avatar-name">{{ item.owner }}</text>
-              </view>
-            </view>
-          </view>
-          <view class="mood-glass-orb">
-            <view class="orb-shine"></view>
-            <text class="orb-heart">♥</text>
-            <text class="mood-text">很幸福</text>
-            <text class="mood-float-heart mood-float-heart--1">♡</text>
-            <text class="mood-float-heart mood-float-heart--2">♥</text>
-          </view>
-        </button>
-
-        <button class="bill-card card" @tap="go('/pages/bill/index')">
-          <view class="card-body-left">
-            <text class="soft-title">恋爱小记账</text>
-            <text class="soft-subtitle">一起经营我们的幸福</text>
-            <view class="bill-stats">
-              <view>
-                <text class="bill-label">本月支出</text>
-                <text class="money money--expense">￥{{ love.bills.expense.toLocaleString() }}</text>
-              </view>
-              <view class="split"></view>
-              <view>
-                <text class="bill-label">本月收入</text>
-                <text class="money money--income">￥{{ love.bills.income.toLocaleString() }}</text>
-              </view>
-            </view>
-          </view>
-          <view class="piggy-jar">
-            <view class="jar-glass-lid"></view>
-            <view class="jar-glass-body">
-              <text class="jar-coin jar-coin--1">◎</text>
-              <text class="jar-coin jar-coin--2">◎</text>
-              <text class="jar-heart">♥</text>
-              <text class="jar-star">✦</text>
-            </view>
-          </view>
-          <view class="bill-card-aura"></view>
-        </button>
+        <HomeLoveDashboard :loading="timelineLoading" />
       </view>
     </scroll-view>
     <LoveTabBar active="home" @create="sheetVisible = true" />
@@ -148,9 +102,11 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onHide, onLoad, onShow } from '@dcloudio/uni-app'
+import HomeLoveDashboard from '../../components/HomeLoveDashboard.vue'
 import LineIcon from '../../components/LineIcon.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
+import { useDiaryStore } from '../../stores/diary'
 import { useLoveStore } from '../../stores/love'
 import { formatDate } from '../../utils/date'
 import { useLoveMusic } from '../../utils/love-music'
@@ -158,7 +114,9 @@ import { CLOUD_LOVE_BG } from '../../config'
 import { resolveMediaUrl } from '../../services/request'
 
 const love = useLoveStore()
+const diary = useDiaryStore()
 const sheetVisible = ref(false)
+const timelineLoading = ref(false)
 const {
   musicControlsVisible,
   isMusicPlaying,
@@ -173,13 +131,24 @@ const {
 } = useLoveMusic()
 
 onLoad(() => {
-  love.loadDashboard()
+  refreshHomeTimeline()
 })
 
 onShow(() => {
   onPageShow()
   startProgressSaver()
+  refreshHomeTimeline()
 })
+
+async function refreshHomeTimeline() {
+  timelineLoading.value = true
+  try {
+    await love.loadDashboard()
+    await diary.fetchTimeline(10, 1)
+  } finally {
+    timelineLoading.value = false
+  }
+}
 
 onHide(() => {
   onPageHide()
@@ -210,15 +179,18 @@ function openProfile() {
   uni.redirectTo({ url: '/pages/profile/index' })
 }
 
-function noop() {}
 </script>
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
 
 .home-page {
-  background: #fff4fa;
+  background: transparent;
   overflow: visible;
+}
+
+.home-page .page-inner {
+  padding-bottom: 320rpx;
 }
 
 .home-bg {
@@ -253,7 +225,7 @@ function noop() {}
   position: relative;
   height: 416rpx;
   margin: -72rpx -24rpx 28rpx;
-  padding: 104rpx 210rpx 0 42rpx;
+  padding: $page-hero-pad-top $page-hero-pad-right 0 $page-hero-pad-left;
   overflow: hidden;
 }
 
@@ -265,13 +237,14 @@ function noop() {}
 
 .top-row {
   justify-content: flex-start;
-  margin-top: 10rpx;
+  margin-top: $page-hero-row-gap-top;
 }
 
 .brand {
   color: $text-main;
-  font-size: 42rpx;
+  font-size: $page-title-font-size;
   font-weight: 700;
+  line-height: $page-title-line-height;
 }
 
 .tagline {
@@ -815,241 +788,4 @@ function noop() {}
   text-align: center;
 }
 
-.mood-card,
-.bill-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 36rpx 32rpx;
-  text-align: left;
-}
-
-.card-body-left {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  min-width: 0;
-}
-
-.soft-subtitle {
-  display: block;
-  margin-top: 10rpx;
-}
-
-.avatars {
-  display: flex;
-  gap: 28rpx;
-  margin-top: 30rpx;
-}
-
-.mood-avatar-bubble {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.mood-avatar-face {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 72rpx;
-  height: 72rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.82);
-  border-radius: 50% 50% 50% 14rpx;
-  font-size: 36rpx;
-  background: linear-gradient(145deg, rgba(255, 240, 248, 0.95), rgba(255, 214, 232, 0.72));
-  box-shadow: 0 10rpx 22rpx rgba(255, 170, 210, 0.16);
-}
-
-.mood-avatar-name {
-  color: $text-soft;
-  font-size: 22rpx;
-}
-
-.mood-glass-orb {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 196rpx;
-  height: 196rpx;
-  margin-right: -8rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.78), transparent 34%),
-    radial-gradient(circle at 70% 72%, rgba(255, 182, 209, 0.28), transparent 42%),
-    rgba(255, 255, 255, 0.42);
-  box-shadow:
-    inset 0 8rpx 24rpx rgba(255, 255, 255, 0.5),
-    0 16rpx 36rpx rgba(255, 170, 210, 0.14);
-  backdrop-filter: blur(24rpx);
-  animation: cardFloat 5.4s ease-in-out infinite;
-}
-
-.orb-shine {
-  position: absolute;
-  top: 14rpx;
-  left: 22rpx;
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 70%);
-  animation: glowBreath 4.8s ease-in-out infinite;
-}
-
-.orb-heart {
-  color: rgba(255, 143, 183, 0.42);
-  font-size: 88rpx;
-  line-height: 1;
-}
-
-.mood-text {
-  position: relative;
-  z-index: 2;
-  margin-top: -12rpx;
-  color: #ff8fb7;
-  font-size: 28rpx;
-  font-weight: 700;
-  background: none;
-}
-
-.mood-float-heart {
-  position: absolute;
-  color: rgba(255, 143, 183, 0.55);
-  font-size: 22rpx;
-  animation: heartDrift 4.6s ease-in-out infinite;
-}
-
-.mood-float-heart--1 {
-  top: 24rpx;
-  right: 28rpx;
-}
-
-.mood-float-heart--2 {
-  bottom: 30rpx;
-  left: 24rpx;
-  animation-delay: -2s;
-}
-
-.bill-stats {
-  display: flex;
-  align-items: center;
-  gap: 28rpx;
-  margin-top: 34rpx;
-}
-
-.bill-label {
-  color: $text-soft;
-  font-size: 23rpx;
-}
-
-.bill-stats view {
-  display: flex;
-  flex-direction: column;
-  gap: 10rpx;
-}
-
-.money {
-  font-size: 30rpx;
-  font-weight: 700;
-  letter-spacing: -0.5rpx;
-}
-
-.money--expense {
-  color: #ff8fb7;
-}
-
-.money--income {
-  color: #b58fd8;
-}
-
-.split {
-  width: 1rpx;
-  height: 56rpx;
-  background: rgba(159, 144, 168, 0.2);
-}
-
-.piggy-jar {
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
-  width: 152rpx;
-  height: 148rpx;
-  margin-right: 4rpx;
-  animation: cardFloat 5.8s ease-in-out infinite;
-}
-
-.jar-glass-lid {
-  width: 92rpx;
-  height: 20rpx;
-  margin: 0 auto 4rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.55);
-  border-radius: 18rpx;
-  background: linear-gradient(180deg, rgba(255, 220, 200, 0.72), rgba(255, 190, 170, 0.45));
-  box-shadow: 0 6rpx 12rpx rgba(255, 170, 210, 0.12);
-}
-
-.jar-glass-body {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 118rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.62);
-  border-radius: 34rpx 34rpx 46rpx 46rpx;
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 230, 210, 0.28) 48%, rgba(255, 200, 220, 0.22) 100%);
-  box-shadow:
-    inset 0 10rpx 24rpx rgba(255, 255, 255, 0.45),
-    0 14rpx 28rpx rgba(255, 170, 210, 0.14);
-  backdrop-filter: blur(16rpx);
-}
-
-.jar-heart {
-  color: rgba(255, 143, 183, 0.78);
-  font-size: 34rpx;
-}
-
-.jar-star {
-  position: absolute;
-  top: 18rpx;
-  right: 22rpx;
-  color: rgba(201, 167, 255, 0.72);
-  font-size: 22rpx;
-}
-
-.jar-coin {
-  position: absolute;
-  color: rgba(255, 200, 120, 0.82);
-  font-size: 20rpx;
-}
-
-.jar-coin--1 {
-  top: 22rpx;
-  left: 24rpx;
-}
-
-.jar-coin--2 {
-  bottom: 24rpx;
-  right: 26rpx;
-}
-
-.bill-card-aura {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
-  height: 42%;
-  border-radius: 0 0 36rpx 36rpx;
-  background: linear-gradient(180deg, transparent, rgba(255, 182, 209, 0.14));
-  pointer-events: none;
-}
 </style>

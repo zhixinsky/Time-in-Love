@@ -96,6 +96,8 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "恋爱时光",
     "navigationBarBackgroundColor": "#FFF4FA",
-    "backgroundColor": "#FFF4FA"
+    "backgroundColor": "#DCCEFF",
+    "renderer": "skyline",
+    "componentFramework": "glass-easel"
   }
 }

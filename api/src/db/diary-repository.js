@@ -101,7 +101,13 @@ export async function timeline(spaceId, userId, page = 1, pageSize = 10) {
       mood: diary.mood,
       isAnniversary: false,
       author: '我',
-      content: diary.content
+      content: diary.content,
+      mediaList: media.map((m) => ({
+        type: m.type,
+        url: m.url,
+        coverUrl: m.coverUrl || '',
+        duration: m.duration || 0
+      }))
     })
   }
   return { total: Number(countRows?.[0]?.c || 0), list }

@@ -1,17 +1,12 @@
 <template>
   <view class="safe-page album-page app-nav-page">
-    <image class="page-bg" :src="CLOUD_LOVE_BG" mode="widthFix" />
+    <PageLiquidBg />
     <scroll-view class="content-scroll" scroll-y enable-flex>
       <view class="page-inner">
-        <view class="app-nav">
-          <view class="app-nav__main">
-            <view class="app-nav__back tap-scale" @tap="goHome">‹</view>
-            <view class="app-nav__copy">
-              <text class="app-nav__title">时光相册</text>
-              <text class="app-nav__subtitle">从心动日记里自动整理照片和视频</text>
-            </view>
-          </view>
-        </view>
+        <PageNavBar
+          title="时光相册"
+          subtitle="从心动日记里自动整理照片和视频"
+        />
 
         <view class="card stats-card">
           <view>
@@ -62,10 +57,11 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import PageLiquidBg from '../../components/PageLiquidBg.vue'
+import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
 import { useAlbumStore } from '../../stores/album'
-import { CLOUD_LOVE_BG } from '../../config'
 import { resolveMediaUrl } from '../../services/request'
 
 const album = useAlbumStore()
@@ -96,10 +92,6 @@ function preview(item) {
   })
 }
 
-function goHome() {
-  uni.redirectTo({ url: '/pages/home/index' })
-}
-
 function goDiary() {
   uni.redirectTo({ url: '/pages/diary/index' })
 }
@@ -107,18 +99,6 @@ function goDiary() {
 
 <style lang="scss" scoped>
 @use '../../styles/theme.scss' as *;
-
-.album-page {
-  background: #fff4fa;
-}
-
-.page-bg {
-  position: absolute;
-  top: -200rpx;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-}
 
 .stats-card {
   display: grid;

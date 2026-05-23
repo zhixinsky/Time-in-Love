@@ -21,7 +21,31 @@ if (fs.existsSync(configPath)) {
   }
   delete config.miniprogramRoot
   config.cloudbaseRoot = config.cloudbaseRoot || 'cloudbase/'
+  config.style = config.style || 'v2'
+  config.rendererOptions = config.rendererOptions || {}
+  config.rendererOptions.skyline = {
+    defaultDisplayBlock: true,
+    disableABTest: true,
+    defaultContentBox: true,
+    ...(config.rendererOptions.skyline || {})
+  }
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`)
+}
+
+const appJsonPath = path.join(distRoot, 'app.json')
+if (fs.existsSync(appJsonPath)) {
+  const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'))
+  appJson.style = appJson.style || 'v2'
+  appJson.renderer = appJson.renderer || 'skyline'
+  appJson.componentFramework = appJson.componentFramework || 'glass-easel'
+  appJson.rendererOptions = appJson.rendererOptions || {}
+  appJson.rendererOptions.skyline = {
+    defaultDisplayBlock: true,
+    disableABTest: true,
+    defaultContentBox: true,
+    ...(appJson.rendererOptions.skyline || {})
+  }
+  fs.writeFileSync(appJsonPath, `${JSON.stringify(appJson, null, 2)}\n`)
 }
 
 /** 本地开发：关闭合法域名校验（与 project.config.json 中 urlCheck 双保险） */

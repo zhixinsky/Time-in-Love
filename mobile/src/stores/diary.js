@@ -52,14 +52,16 @@ export const useDiaryStore = defineStore('diary', () => {
     }
   }
 
-  async function fetchTimeline(pageSize = 5) {
+  async function fetchTimeline(pageSize = 10, page = 1) {
     try {
       await useAuthStore().ensureLogin()
-      const data = await diaryApi.getTimeline(1, pageSize)
-      timelineList.value = data?.list || []
+      const data = await diaryApi.getTimeline(page, pageSize)
+      const list = Array.isArray(data) ? data : data?.list || data?.items || []
+      timelineList.value = list
+      return list
     } catch (e) {
-      timelineList.value = []
       console.warn('[diary] fetchTimeline failed', e)
+      return timelineList.value
     }
   }
 

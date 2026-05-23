@@ -19,7 +19,7 @@
         >
           <template v-if="tab.center">
             <view class="center-orb">
-              <view class="orb-logo-wrap">
+              <view class="orb-logo-wrap skyline-orb-breath">
                 <image class="orb-logo" :src="CLOUD_AI_LOGO" mode="aspectFit" />
               </view>
             </view>
@@ -272,10 +272,10 @@ function go(path) {
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   transition:
-    transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1),
-    box-shadow 0.32s ease;
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.38s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tab-item.center.active .orb-logo-wrap {
