@@ -1,4 +1,5 @@
 import { resolveMediaUrl } from '../services/request'
+import { parseYmd } from './diary-date'
 
 const WEEK_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -17,8 +18,8 @@ function mapMediaItem(raw) {
 }
 
 export function mapHomeTimelineItem(item) {
-  const dateStr = item?.date || ''
-  const dateObj = dateStr ? new Date(`${dateStr}T00:00:00`) : new Date()
+  const dateStr = String(item?.date || '').slice(0, 10)
+  const dateObj = dateStr ? parseYmd(dateStr) : new Date()
   const media = (item?.mediaList || [])
     .map(mapMediaItem)
     .filter(Boolean)
@@ -36,9 +37,9 @@ export function mapHomeTimelineItem(item) {
     type: item.isAnniversary ? 'date' : 'daily',
     date: `${dateObj.getMonth() + 1}.${dateObj.getDate()}`,
     week: WEEK_LABELS[dateObj.getDay()] || '',
-    title: item.contentPreview || '心动瞬间',
+    title: item.contentPreview || item.content || '心动瞬间',
     tag: item.isAnniversary ? '纪念日' : '心动日记',
-    copy: item.content || item.contentPreview || '',
+    copy: item.content || '',
     media,
     mood: item.mood || '',
     moodIcon: '💗',

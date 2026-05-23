@@ -206,6 +206,7 @@ import { useDiaryStore } from '../stores/diary'
 import { useLoveStore } from '../stores/love'
 import { daysUntilNextDate, mapHomeTimelineItem } from '../utils/home-timeline-display'
 import { formatVideoDuration } from '../utils/diary-date'
+import { markMediaPreviewOpening } from '../utils/media-preview'
 
 const props = defineProps({
   loading: { type: Boolean, default: false }
@@ -250,6 +251,10 @@ function goDiaryAll() {
 }
 
 function openTimelineItem(item) {
+  if (item?.id) {
+    uni.redirectTo({ url: `/pages/diary/index?id=${encodeURIComponent(item.id)}` })
+    return
+  }
   const date = item?.eventDate
   const url = date
     ? `/pages/diary/index?date=${encodeURIComponent(date)}`
@@ -266,6 +271,7 @@ function onMediaTap(item, index) {
   }
   const urls = item.media.filter((m) => m.type === 'image').map((m) => m.url)
   if (!urls.length) return
+  markMediaPreviewOpening()
   uni.previewImage({
     current: media.url,
     urls
@@ -276,6 +282,7 @@ function playTimelineVideo(media) {
   const url = media?.url
   if (!url) return
   // #ifdef MP-WEIXIN
+  markMediaPreviewOpening()
   uni.previewMedia({ sources: [{ url, type: 'video' }] })
   // #endif
   // #ifndef MP-WEIXIN

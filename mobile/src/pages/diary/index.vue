@@ -5,7 +5,7 @@
       <view class="page-inner">
         <PageNavBar title="心动日记" :show-back="false">
           <template #action>
-            <picker mode="date" :value="diary.selectedDate" @change="onPickDate">
+            <picker mode="date" :value="selectedDate" @change="onPickDate">
               <view class="nav-calendar app-nav__action tap-scale">
                 <text class="cal-icon">▦</text>
               </view>
@@ -13,30 +13,10 @@
           </template>
         </PageNavBar>
 
-        <view
-          class="week-strip"
-          @touchstart="onWeekTouchStart"
-          @touchend="onWeekTouchEnd"
-        >
-          <view class="week-row">
-            <view
-              v-for="item in diary.weekDays"
-              :key="item.ymd"
-              class="week-day tap-scale"
-              @tap="onSelectDate(item.ymd)"
-            >
-              <text :class="['week-label', { active: item.ymd === diary.selectedDate }]">
-                {{ item.weekday }}
-              </text>
-              <view
-                :class="['week-ring', { active: item.ymd === diary.selectedDate }]"
-              >
-                <text class="week-num">{{ item.day }}</text>
-              </view>
-              <view v-if="item.ymd === diary.selectedDate" class="week-dot" />
-            </view>
-          </view>
-        </view>
+        <DiaryDateStrip
+          :selected="selectedDate"
+          @select="onSelectDate"
+        />
 
         <view v-if="diary.loading" class="glass-card diary-loading">
         <text>正在加载心动日记…</text>
@@ -181,23 +161,28 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { onLoad, onShow } from '@dcloudio/uni-app'
+import DiaryDateStrip from '../../components/DiaryDateStrip.vue'
 import PageLiquidBg from '../../components/PageLiquidBg.vue'
 import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
+import { useAuthStore } from '../../stores/auth'
 import { useDiaryStore } from '../../stores/diary'
 import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
 import { resolveMediaUrl } from '../../services/request'
 
 const diary = useDiaryStore()
+const { selectedDate } = storeToRefs(diary)
 const expanded = ref(false)
 const sheetVisible = ref(false)
-let weekTouchX = 0
 let pendingDate = ''
+let pendingDiaryId = ''
 
 onLoad((options) => {
   if (options?.date) pendingDate = decodeURIComponent(options.date)
+  if (options?.id) pendingDiaryId = decodeURIComponent(options.id)
 })
 
 const hasDiary = computed(() => Boolean(diary.currentDiary?.id))
@@ -264,17 +249,6 @@ function onSelectDate(ymd) {
   diary.selectDate(ymd)
 }
 
-function onWeekTouchStart(e) {
-  weekTouchX = e.touches?.[0]?.clientX ?? 0
-}
-
-function onWeekTouchEnd(e) {
-  const x = e.changedTouches?.[0]?.clientX ?? 0
-  const dx = x - weekTouchX
-  if (dx > 50) diary.switchWeek('prev')
-  if (dx < -50) diary.switchWeek('next')
-}
-
 function previewImages(index) {
   uni.previewImage({
     current: displayImages.value[index],
@@ -304,13 +278,21 @@ async function onGenerateAi() {
 }
 
 function openEdit() {
-  const q = [`date=${encodeURIComponent(diary.selectedDate)}`]
+  const q = [`date=${encodeURIComponent(selectedDate.value)}`]
   if (diary.currentDiary?.id) q.push(`id=${encodeURIComponent(diary.currentDiary.id)}`)
   uni.navigateTo({ url: `/pages/diary/edit?${q.join('&')}` })
 }
 
 function openTimelineItem(item) {
-  diary.selectDate(item.date)
+  if (item?.id) {
+    expanded.value = false
+    void diary.fetchDiaryById(item.id)
+    return
+  }
+  if (item?.date) {
+    expanded.value = false
+    void diary.selectDate(item.date)
+  }
 }
 
 function showAllTip() {
@@ -318,12 +300,24 @@ function showAllTip() {
 }
 
 onShow(async () => {
-  await diary.initPage()
+  if (pendingDiaryId) {
+    const id = pendingDiaryId
+    pendingDiaryId = ''
+    pendingDate = ''
+    const auth = useAuthStore()
+    await auth.ensureLogin()
+    await diary.fetchDiaryById(id, { skipAuth: true })
+    void diary.fetchTimeline(10, 1, { skipAuth: true })
+    return
+  }
   if (pendingDate) {
     const date = pendingDate
     pendingDate = ''
     await diary.selectDate(date)
+    void diary.fetchTimeline(10, 1)
+    return
   }
+  await diary.initPage()
 })
 </script>
 
@@ -345,65 +339,6 @@ onShow(async () => {
   font-size: 32rpx;
   color: #b99cff;
   font-weight: 700;
-}
-
-.week-strip {
-  margin: 8rpx 0 16rpx;
-}
-
-.week-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 8rpx;
-}
-
-.week-day {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.week-label {
-  font-size: 22rpx;
-  color: #9b8c9f;
-}
-
-.week-label.active {
-  color: #ff82ae;
-  font-weight: 600;
-}
-
-.week-ring {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.week-ring.active {
-  background: #ff7eaa;
-  box-shadow: 0 10rpx 24rpx rgba(255, 126, 170, 0.35);
-}
-
-.week-num {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #6f5d73;
-}
-
-.week-ring.active .week-num {
-  color: #fff;
-}
-
-.week-dot {
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background: #ff7eaa;
 }
 
 .glass-card {

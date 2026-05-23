@@ -9,23 +9,34 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(stored.user || null)
   const space = ref(stored.space || null)
   const loggingIn = ref(false)
+  let loginPromise = null
 
   async function login() {
-    if (loggingIn.value) return { token: token.value, user: user.value, space: space.value }
-    loggingIn.value = true
-    try {
-      const data = await authApi.loginWithWechat()
-      token.value = data.token
-      user.value = data.user
-      space.value = data.space
-      return data
-    } finally {
-      loggingIn.value = false
+    if (loggingIn.value && loginPromise) return loginPromise
+    if (token.value && space.value?.id) {
+      return { token: token.value, user: user.value, space: space.value }
     }
+    loggingIn.value = true
+    loginPromise = authApi
+      .loginWithWechat()
+      .then((data) => {
+        token.value = data.token
+        user.value = data.user
+        space.value = data.space
+        return data
+      })
+      .finally(() => {
+        loggingIn.value = false
+        loginPromise = null
+      })
+    return loginPromise
   }
 
   async function ensureLogin() {
-    if (token.value && space.value?.id) return { token: token.value, user: user.value, space: space.value }
+    if (token.value && space.value?.id) {
+      return { token: token.value, user: user.value, space: space.value }
+    }
+    if (loginPromise) return loginPromise
     return login()
   }
 

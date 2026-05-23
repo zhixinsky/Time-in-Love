@@ -61,10 +61,11 @@ export const useLoveStore = defineStore('love', () => {
   }
 
   /** 从云托管同步首页数据（失败时保持本地 mock） */
-  async function loadDashboard(spaceId = 'current') {
+  async function loadDashboard(spaceId = 'current', options = {}) {
+    const { skipAuth = false } = options
     try {
       const auth = useAuthStore()
-      await auth.ensureLogin()
+      if (!skipAuth) await auth.ensureLogin()
       const data = await fetchSpaceDashboard(spaceId)
       if (!data) return false
       space.value = { ...space.value, ...data.space }

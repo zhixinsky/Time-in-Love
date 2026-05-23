@@ -2,6 +2,8 @@
 import { onShow } from '@dcloudio/uni-app'
 import { WX_CLOUD_ENV_ID } from './config'
 import { initCloudContainer } from './services/request'
+import { useAuthStore } from './stores/auth'
+import { useDiaryStore } from './stores/diary'
 
 export default {
   onLaunch() {
@@ -9,6 +11,11 @@ export default {
     initCloudContainer()
     // #endif
     console.log('星芽恋记启动', WX_CLOUD_ENV_ID)
+    const auth = useAuthStore()
+    void auth.ensureLogin().then(() => {
+      const diary = useDiaryStore()
+      void diary.fetchTimeline(10, 1, { skipAuth: true })
+    })
   },
   onShow() {
     setTimeout(() => {

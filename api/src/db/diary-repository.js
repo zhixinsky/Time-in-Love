@@ -1,10 +1,9 @@
 import { dbExecute, dbQuery } from './pool.js'
+import { formatYmdLocal } from '../utils/date.js'
 import { createId } from '../utils/id.js'
 
 function formatDate(value) {
-  if (!value) return ''
-  if (typeof value === 'string') return value.slice(0, 10)
-  return new Date(value).toISOString().slice(0, 10)
+  return formatYmdLocal(value)
 }
 
 function normalizeDiary(row) {
@@ -61,6 +60,47 @@ export async function mediaByDiaryId(diaryId) {
   return (rows || []).map(normalizeMedia)
 }
 
+/** 批量拉取媒体，避免时间线 N+1 查询 */
+async function mediaMapByDiaryIds(diaryIds = []) {
+  const ids = [...new Set(diaryIds.filter(Boolean))]
+  if (!ids.length) return new Map()
+  const placeholders = ids.map(() => '?').join(',')
+  const rows = await dbQuery(
+    `SELECT id, diary_id AS diaryId, type, url, cover_url AS coverUrl, duration, sort, created_at AS createdAt
+     FROM diary_media WHERE diary_id IN (${placeholders}) ORDER BY diary_id ASC, sort ASC`,
+    ids
+  )
+  const map = new Map()
+  for (const row of rows || []) {
+    const media = normalizeMedia(row)
+    if (!map.has(media.diaryId)) map.set(media.diaryId, [])
+    map.get(media.diaryId).push(media)
+  }
+  return map
+}
+
+function mapTimelineItem(diary, media = []) {
+  const cover = media.find((item) => item.type === 'video') || media.find((item) => item.type === 'image')
+  const content = (diary.content || '').replace(/\s+/g, ' ').trim()
+  return {
+    id: diary.id,
+    contentPreview: content.length > 48 ? `${content.slice(0, 48)}…` : content,
+    date: diary.diaryDate,
+    loveDay: diary.loveDay,
+    coverImage: cover?.coverUrl || cover?.url || '',
+    mood: diary.mood,
+    isAnniversary: false,
+    author: '我',
+    content: diary.content,
+    mediaList: media.map((m) => ({
+      type: m.type,
+      url: m.url,
+      coverUrl: m.coverUrl || '',
+      duration: m.duration || 0
+    }))
+  }
+}
+
 function canViewSql(userId) {
   return `(visibility <> 'self' OR user_id = '${String(userId).replace(/'/g, "''")}')`
 }
@@ -77,39 +117,19 @@ export async function findByDate(spaceId, userId, date) {
 }
 
 export async function timeline(spaceId, userId, page = 1, pageSize = 10) {
-  const countRows = await dbQuery(
-    `SELECT COUNT(*) AS c FROM diaries WHERE space_id = ? AND deleted_at IS NULL AND ${canViewSql(userId)}`,
-    [spaceId]
-  )
-  const rows = await dbQuery(
-    `${selectDiarySql(`space_id = ? AND deleted_at IS NULL AND ${canViewSql(userId)}`)}
-     ORDER BY diary_date DESC, created_at DESC LIMIT ? OFFSET ?`,
-    [spaceId, Number(pageSize), (Number(page) - 1) * Number(pageSize)]
-  )
-  const list = []
-  for (const row of rows || []) {
-    const diary = normalizeDiary(row)
-    const media = await mediaByDiaryId(diary.id)
-    const cover = media.find((item) => item.type === 'video') || media.find((item) => item.type === 'image')
-    const content = (diary.content || '').replace(/\s+/g, ' ').trim()
-    list.push({
-      id: diary.id,
-      contentPreview: content.length > 48 ? `${content.slice(0, 48)}…` : content,
-      date: diary.diaryDate,
-      loveDay: diary.loveDay,
-      coverImage: cover?.coverUrl || cover?.url || '',
-      mood: diary.mood,
-      isAnniversary: false,
-      author: '我',
-      content: diary.content,
-      mediaList: media.map((m) => ({
-        type: m.type,
-        url: m.url,
-        coverUrl: m.coverUrl || '',
-        duration: m.duration || 0
-      }))
-    })
-  }
+  const limit = Number(pageSize)
+  const offset = (Number(page) - 1) * limit
+  const where = `space_id = ? AND deleted_at IS NULL AND ${canViewSql(userId)}`
+  const [countRows, rows] = await Promise.all([
+    dbQuery(`SELECT COUNT(*) AS c FROM diaries WHERE ${where}`, [spaceId]),
+    dbQuery(
+      `${selectDiarySql(where)} ORDER BY diary_date DESC, created_at DESC LIMIT ? OFFSET ?`,
+      [spaceId, limit, offset]
+    )
+  ])
+  const diaries = (rows || []).map(normalizeDiary)
+  const mediaMap = await mediaMapByDiaryIds(diaries.map((d) => d.id))
+  const list = diaries.map((diary) => mapTimelineItem(diary, mediaMap.get(diary.id) || []))
   return { total: Number(countRows?.[0]?.c || 0), list }
 }
 

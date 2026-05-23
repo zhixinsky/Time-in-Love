@@ -106,17 +106,21 @@ import HomeLoveDashboard from '../../components/HomeLoveDashboard.vue'
 import LineIcon from '../../components/LineIcon.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import QuickSheet from '../../components/QuickSheet.vue'
+import { useAuthStore } from '../../stores/auth'
 import { useDiaryStore } from '../../stores/diary'
 import { useLoveStore } from '../../stores/love'
 import { formatDate } from '../../utils/date'
 import { useLoveMusic } from '../../utils/love-music'
 import { CLOUD_LOVE_BG } from '../../config'
 import { resolveMediaUrl } from '../../services/request'
+import { consumeMediaPreviewReturn } from '../../utils/media-preview'
 
+const auth = useAuthStore()
 const love = useLoveStore()
 const diary = useDiaryStore()
 const sheetVisible = ref(false)
 const timelineLoading = ref(false)
+let skipNextShowRefresh = false
 const {
   musicControlsVisible,
   isMusicPlaying,
@@ -131,20 +135,33 @@ const {
 } = useLoveMusic()
 
 onLoad(() => {
+  skipNextShowRefresh = true
   refreshHomeTimeline()
 })
 
 onShow(() => {
   onPageShow()
   startProgressSaver()
-  refreshHomeTimeline()
+  if (skipNextShowRefresh) {
+    skipNextShowRefresh = false
+    return
+  }
+  if (consumeMediaPreviewReturn()) return
+  refreshHomeTimeline({ background: true })
 })
 
-async function refreshHomeTimeline() {
-  timelineLoading.value = true
+async function refreshHomeTimeline(options = {}) {
+  const { background = false } = options
+  const hasTimeline = (diary.timelineList || []).length > 0
+  if (!background && !hasTimeline) {
+    timelineLoading.value = true
+  }
   try {
-    await love.loadDashboard()
-    await diary.fetchTimeline(10, 1)
+    await auth.ensureLogin()
+    await Promise.all([
+      love.loadDashboard('current', { skipAuth: true }),
+      diary.fetchTimeline(10, 1, { skipAuth: true })
+    ])
   } finally {
     timelineLoading.value = false
   }
