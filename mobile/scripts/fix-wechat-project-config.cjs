@@ -22,6 +22,7 @@ if (fs.existsSync(configPath)) {
   delete config.miniprogramRoot
   config.cloudbaseRoot = config.cloudbaseRoot || 'cloudbase/'
   config.style = config.style || 'v2'
+  config.libVersion = config.libVersion || '3.2.0'
   config.rendererOptions = config.rendererOptions || {}
   config.rendererOptions.skyline = {
     defaultDisplayBlock: true,

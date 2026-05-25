@@ -6,7 +6,8 @@
     "dev:h5": "uni --host 0.0.0.0",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:h5": "uni build",
-    "build:mp-weixin": "uni build -p mp-weixin && node scripts/prune-cloud-static.cjs && node scripts/fix-wechat-project-config.cjs"
+    "build:mp-weixin": "uni build -p mp-weixin && node scripts/clean-stale-mp-components.cjs && node scripts/prune-cloud-static.cjs && node scripts/fix-wechat-project-config.cjs",
+    "clean:mp-weixin": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5000720260410001",

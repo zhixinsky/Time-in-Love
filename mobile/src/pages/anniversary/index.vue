@@ -214,18 +214,16 @@ function repeatLabel(type) {
 .save-btn {
   min-width: 128rpx;
   height: 64rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 26rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
-  box-shadow: 0 14rpx 26rpx rgba(255, 143, 183, 0.22);
+  @include jelly-primary-button;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
 .item-card {
@@ -233,7 +231,7 @@ function repeatLabel(type) {
   grid-template-columns: 96rpx 1fr auto;
   gap: 20rpx;
   align-items: center;
-  padding: 28rpx;
+  padding: 30rpx;
 }
 
 .date-pill {
@@ -245,9 +243,12 @@ function repeatLabel(type) {
   justify-content: center;
   width: 96rpx;
   height: 116rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(180deg, #fff6fb, #f3e8ff);
-  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1rpx solid rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .month {
@@ -323,7 +324,9 @@ function repeatLabel(type) {
   display: flex;
   align-items: flex-end;
   padding: 24rpx;
-  background: rgba(84, 60, 86, 0.22);
+  background: rgba(84, 60, 86, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .editor {
@@ -339,10 +342,9 @@ function repeatLabel(type) {
   min-height: 82rpx;
   padding: 0 24rpx;
   margin-top: 22rpx;
-  border-radius: 24rpx;
   color: $text-main;
   font-size: 28rpx;
-  background: rgba(255, 255, 255, 0.72);
+  @include apple-liquid-input;
 }
 
 .picker-row {
@@ -367,13 +369,13 @@ function repeatLabel(type) {
   border-radius: 999rpx;
   color: $text-soft;
   font-size: 26rpx;
-  background: rgba(255, 255, 255, 0.55);
+  @include liquid-secondary-button;
 }
 
 .segment.active {
   color: #fff;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  @include jelly-primary-button;
 }
 
 .editor-actions {
@@ -387,10 +389,8 @@ function repeatLabel(type) {
 .ghost-btn {
   flex: 1;
   height: 68rpx;
-  border-radius: 999rpx;
-  color: $text-soft;
   font-size: 26rpx;
-  background: rgba(255, 255, 255, 0.58);
+  @include liquid-secondary-button;
 }
 
 .save-btn {

@@ -68,6 +68,41 @@ button::after {
   border: 0;
 }
 
+.tap-scale:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.add-btn,
+.save-btn,
+.generate-btn,
+.empty-btn {
+  @include jelly-primary-button;
+}
+
+.ghost-btn {
+  @include liquid-secondary-button;
+}
+
+.input,
+.answer-input,
+.ai-input,
+.field-textarea,
+.textarea-shell,
+.date-input {
+  @include apple-liquid-input;
+}
+
+input,
+textarea {
+  color: $text-main;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(125, 100, 113, 0.48);
+}
+
 /* 子页标题区：垂直间距由 .page-hero-nav 承担，与首页 .hero 一致 */
 .app-nav--flat {
   position: relative;

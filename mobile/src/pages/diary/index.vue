@@ -25,7 +25,7 @@
         <view v-else-if="!hasDiary" class="glass-card empty-card">
         <text class="empty-title">今天还没有记录心动瞬间</text>
         <text class="empty-copy">写下这一刻，让以后也能想起今天</text>
-        <button class="empty-btn tap-scale" @tap="openEdit">去记录</button>
+        <button class="empty-btn tap-scale" @tap="openPublish">去记录</button>
       </view>
 
       <view v-else class="glass-card diary-card">
@@ -148,14 +148,10 @@
       </view>
     </scroll-view>
 
-    <view class="bottom-bar">
-      <button class="record-btn tap-scale" @tap="openEdit">
-        <text class="record-icon">✎</text>
-        <text>记录心动瞬间</text>
-      </button>
+    <view class="diary-fab tap-scale" @tap="openPublish">
+      <text class="diary-fab-icon">✎</text>
     </view>
-    <LoveTabBar active="diary" @create="sheetVisible = true" />
-    <QuickSheet :visible="sheetVisible" @close="sheetVisible = false" />
+    <LoveTabBar active="diary" @create="openPublish" />
   </view>
 </template>
 
@@ -167,16 +163,16 @@ import DiaryDateStrip from '../../components/DiaryDateStrip.vue'
 import PageLiquidBg from '../../components/PageLiquidBg.vue'
 import PageNavBar from '../../components/PageNavBar.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
-import QuickSheet from '../../components/QuickSheet.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDiaryStore } from '../../stores/diary'
 import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
+import { weatherIconFor } from '../../utils/diary-meta-options'
 import { resolveMediaUrl } from '../../services/request'
+import { resolveVideoPoster } from '../../utils/media-display'
 
 const diary = useDiaryStore()
 const { selectedDate } = storeToRefs(diary)
 const expanded = ref(false)
-const sheetVisible = ref(false)
 let pendingDate = ''
 let pendingDiaryId = ''
 
@@ -204,8 +200,7 @@ const metaItems = computed(() => {
   const items = []
   if (d.mood) items.push({ key: 'mood', icon: '♥', iconClass: 'pink', text: d.mood })
   if (d.weather) {
-    const temp = d.temperature ? ` ${d.temperature}` : ''
-    items.push({ key: 'weather', icon: '☀', iconClass: 'sun', text: `${d.weather}${temp}` })
+    items.push({ key: 'weather', icon: weatherIconFor(d.weather), iconClass: 'sun', text: d.weather })
   }
   if (d.locationName) items.push({ key: 'loc', icon: '●', iconClass: 'purple', text: d.locationName })
   return items
@@ -232,7 +227,7 @@ function formatTimelineDate(ymd) {
 }
 
 function videoCover(video) {
-  return resolveMediaUrl(video.coverUrl || video.url)
+  return resolveVideoPoster(video.coverUrl, video.url)
 }
 
 function timelineCover(item) {
@@ -277,10 +272,12 @@ async function onGenerateAi() {
   }
 }
 
-function openEdit() {
-  const q = [`date=${encodeURIComponent(selectedDate.value)}`]
-  if (diary.currentDiary?.id) q.push(`id=${encodeURIComponent(diary.currentDiary.id)}`)
-  uni.navigateTo({ url: `/pages/diary/edit?${q.join('&')}` })
+function openPublish() {
+  const id = diary.currentDiary?.id || ''
+  const date = selectedDate.value || ''
+  let url = `/pages/diary/edit?date=${encodeURIComponent(date)}`
+  if (id) url += `&id=${encodeURIComponent(id)}`
+  uni.navigateTo({ url })
 }
 
 function openTimelineItem(item) {
@@ -342,12 +339,7 @@ onShow(async () => {
 }
 
 .glass-card {
-  border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1rpx solid rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 12rpx 40rpx rgba(255, 170, 210, 0.12);
+  @include apple-liquid-card;
 }
 
 .diary-loading,
@@ -384,8 +376,7 @@ onShow(async () => {
 .empty-btn {
   display: inline-flex;
   padding: 16rpx 48rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #ff9ac4, #ff82ae);
+  @include jelly-primary-button;
   color: #fff;
   font-size: 28rpx;
   border: none;
@@ -464,7 +455,7 @@ onShow(async () => {
 .media-cell--video .media-video-ph {
   width: 100%;
   height: 100%;
-  background: linear-gradient(145deg, #ffd6e8, #f5c4ff);
+  background: linear-gradient(145deg, rgba(255, 214, 232, 0.68), rgba(253, 247, 255, 0.62));
 }
 
 .video-play {
@@ -475,7 +466,10 @@ onShow(async () => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.58);
+  border: 1rpx solid rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,7 +501,7 @@ onShow(async () => {
   gap: 8rpx;
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.55);
+  @include liquid-secondary-button;
 }
 
 .meta-icon {
@@ -569,11 +563,7 @@ onShow(async () => {
   justify-content: space-between;
   padding: 28rpx;
   margin-bottom: 20rpx;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 240, 248, 0.85),
-    rgba(240, 228, 255, 0.78)
-  );
+  background: rgba(255, 255, 255, 0.52);
 }
 
 .ai-copy {
@@ -604,10 +594,7 @@ onShow(async () => {
   margin-top: 16rpx;
   padding: 10rpx 24rpx;
   font-size: 24rpx;
-  color: #ff82ae;
-  background: rgba(255, 255, 255, 0.65);
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(255, 130, 174, 0.35);
+  @include liquid-secondary-button;
 }
 
 .ai-sprout {
@@ -643,7 +630,7 @@ onShow(async () => {
   display: flex;
   gap: 16rpx;
   padding: 22rpx 20rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
 }
 
 .history-timeline {
@@ -658,8 +645,8 @@ onShow(async () => {
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
-  border: 3rpx solid #ff82ae;
-  background: #fff;
+  border: 3rpx solid rgba(255, 143, 177, 0.74);
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .history-line {
@@ -727,41 +714,32 @@ onShow(async () => {
 }
 
 .scroll-bottom-spacer {
-  /* 为底部「记录」按钮 + TabBar 留白 */
-  height: 300rpx;
+  height: 220rpx;
 }
 
-.bottom-bar {
+.diary-fab {
   position: fixed;
-  left: 0;
-  right: 0;
-  /* 悬在 TabBar 上方（TabBar 约 100rpx + 底边距） */
-  bottom: calc(132rpx + env(safe-area-inset-bottom));
-  z-index: 18;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.record-btn {
-  pointer-events: auto;
-  width: 80%;
-  height: 88rpx;
-  border-radius: 999rpx;
-  border: none;
+  right: 28rpx;
+  bottom: calc(148rpx + env(safe-area-inset-bottom));
+  z-index: 22;
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  background: linear-gradient(135deg, #ff9ac4, #ff82ae);
-  color: #fff;
-  font-size: 30rpx;
-  font-weight: 700;
-  box-shadow: 0 16rpx 40rpx rgba(255, 130, 174, 0.35);
+  background: $jelly-gradient;
+  box-shadow:
+    0 20rpx 60rpx rgba(255, 143, 177, 0.22),
+    inset 0 2rpx rgba(255, 255, 255, 0.65);
+  border: 2rpx solid rgba(255, 255, 255, 0.65);
 }
 
-.record-icon {
-  font-size: 32rpx;
+.diary-fab-icon {
+  color: #fff;
+  font-size: 44rpx;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .tap-scale:active {

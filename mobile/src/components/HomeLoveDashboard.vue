@@ -46,52 +46,66 @@
               </view>
               <text class="memory-copy">{{ item.copy }}</text>
               <view v-if="item.media.length" class="memory-media">
-                <scroll-view
-                  v-if="item.media.length > 3"
-                  class="memory-images-scroll"
-                  scroll-x
-                  :show-scrollbar="false"
-                  enable-flex
+                <view
+                  :class="['memory-media-host', { 'memory-media-host--scroll': item.media.length > 3 }]"
                 >
-                  <view class="memory-images memory-images--scroll">
+                  <scroll-view
+                    v-if="item.media.length > 3"
+                    class="memory-images-scroll"
+                    scroll-x
+                    enhanced
+                    :show-scrollbar="false"
+                  >
+                    <view class="memory-images-inner">
+                      <view
+                        v-for="(media, mediaIndex) in item.media"
+                        :key="`${item.id}-m-${mediaIndex}`"
+                        class="memory-image memory-image--scroll tap-scale"
+                        @tap.stop="onMediaTap(item, mediaIndex)"
+                      >
+                        <image
+                          v-if="mediaDisplaySrc(media)"
+                          class="memory-image-photo"
+                          :src="mediaDisplaySrc(media)"
+                          mode="aspectFill"
+                        />
+                        <view v-else class="memory-video-ph" />
+                        <view v-if="media.type === 'video'" class="video-badge">
+                          <text>▶</text>
+                        </view>
+                        <text
+                          v-if="media.type === 'video' && media.duration"
+                          class="video-time"
+                        >
+                          {{ formatVideoDuration(media.duration) }}
+                        </text>
+                      </view>
+                    </view>
+                  </scroll-view>
+                  <view v-else class="memory-images">
                     <view
                       v-for="(media, mediaIndex) in item.media"
                       :key="`${item.id}-m-${mediaIndex}`"
-                      class="memory-image memory-image--scroll tap-scale"
+                      class="memory-image tap-scale"
                       @tap.stop="onMediaTap(item, mediaIndex)"
                     >
                       <image
+                        v-if="mediaDisplaySrc(media)"
                         class="memory-image-photo"
-                        :src="media.poster"
+                        :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
                       />
+                      <view v-else class="memory-video-ph" />
                       <view v-if="media.type === 'video'" class="video-badge">
                         <text>▶</text>
                       </view>
-                      <text v-if="media.type === 'video' && media.duration" class="video-time">
+                      <text
+                        v-if="media.type === 'video' && media.duration"
+                        class="video-time"
+                      >
                         {{ formatVideoDuration(media.duration) }}
                       </text>
                     </view>
-                  </view>
-                </scroll-view>
-                <view v-else class="memory-images">
-                  <view
-                    v-for="(media, mediaIndex) in item.media"
-                    :key="`${item.id}-m-${mediaIndex}`"
-                    class="memory-image tap-scale"
-                    @tap.stop="onMediaTap(item, mediaIndex)"
-                  >
-                    <image
-                      class="memory-image-photo"
-                      :src="media.poster"
-                      mode="aspectFill"
-                    />
-                    <view v-if="media.type === 'video'" class="video-badge">
-                      <text>▶</text>
-                    </view>
-                    <text v-if="media.type === 'video' && media.duration" class="video-time">
-                      {{ formatVideoDuration(media.duration) }}
-                    </text>
                   </view>
                 </view>
               </view>
@@ -260,6 +274,12 @@ function openTimelineItem(item) {
     ? `/pages/diary/index?date=${encodeURIComponent(date)}`
     : '/pages/diary/index'
   uni.redirectTo({ url })
+}
+
+function mediaDisplaySrc(media) {
+  if (!media) return ''
+  if (media.type === 'video') return media.poster || ''
+  return media.poster || media.url || ''
 }
 
 function onMediaTap(item, index) {
@@ -527,8 +547,28 @@ function toastSoon(label) {
   margin-top: 14rpx;
 }
 
+/* Skyline：横向 scroll-view 必须固定高度，勿用 enable-flex */
+.memory-media-host--scroll {
+  width: 100%;
+  height: 92rpx;
+  overflow: hidden;
+}
+
 .memory-images-scroll {
   width: 100%;
+  height: 92rpx;
+  white-space: nowrap;
+}
+
+.memory-images-inner {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8rpx;
+  height: 92rpx;
+  padding-right: 8rpx;
+  box-sizing: border-box;
 }
 
 .memory-images {
@@ -537,10 +577,10 @@ function toastSoon(label) {
   gap: 8rpx;
 }
 
-.memory-images--scroll {
-  flex-direction: row;
-  flex-wrap: nowrap;
-  padding-right: 8rpx;
+.memory-video-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #f5dce8, #e8dcf5);
 }
 
 .memory-image {

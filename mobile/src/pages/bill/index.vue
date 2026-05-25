@@ -176,15 +176,16 @@ function removeItem(item) {
   color: $text-main;
   font-size: 24rpx;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: $shadow;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1rpx solid rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.65);
 }
 
 .summary-card {
   display: grid;
   grid-template-columns: 1fr 1rpx 1fr;
   gap: 28rpx;
-  padding: 34rpx;
+  padding: 38rpx 34rpx;
 }
 
 .summary-label,
@@ -241,12 +242,10 @@ function removeItem(item) {
 .save-btn {
   min-width: 128rpx;
   height: 64rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 26rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
-  box-shadow: 0 14rpx 26rpx rgba(255, 143, 183, 0.22);
+  @include jelly-primary-button;
 }
 
 .section-title {
@@ -259,16 +258,15 @@ function removeItem(item) {
 .category-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14rpx;
-  margin-bottom: 24rpx;
+  gap: 18rpx;
+  margin-bottom: 30rpx;
 }
 
 .category-card {
   min-height: 118rpx;
   padding: 22rpx;
-  border-radius: 28rpx;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: $shadow;
+  @include apple-liquid-card;
+  border-radius: 36rpx;
 }
 
 .category-name {
@@ -295,7 +293,7 @@ function removeItem(item) {
   grid-template-columns: 64rpx 1fr auto;
   gap: 18rpx;
   align-items: center;
-  padding: 26rpx;
+  padding: 28rpx;
 }
 
 .type-dot {
@@ -313,7 +311,7 @@ function removeItem(item) {
 }
 
 .type-dot.expense {
-  background: #ff8fb7;
+  background: rgba(255, 143, 177, 0.78);
 }
 
 .type-dot.income {
@@ -355,7 +353,9 @@ function removeItem(item) {
   display: flex;
   align-items: flex-end;
   padding: 24rpx;
-  background: rgba(84, 60, 86, 0.22);
+  background: rgba(84, 60, 86, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .editor {
@@ -381,13 +381,13 @@ function removeItem(item) {
   border-radius: 999rpx;
   color: $text-soft;
   font-size: 26rpx;
-  background: rgba(255, 255, 255, 0.55);
+  @include liquid-secondary-button;
 }
 
 .segment.active {
   color: #fff;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  @include jelly-primary-button;
 }
 
 .input {
@@ -397,10 +397,9 @@ function removeItem(item) {
   min-height: 82rpx;
   padding: 0 24rpx;
   margin-top: 22rpx;
-  border-radius: 24rpx;
   color: $text-main;
   font-size: 28rpx;
-  background: rgba(255, 255, 255, 0.72);
+  @include apple-liquid-input;
 }
 
 .picker-row {
@@ -419,10 +418,8 @@ function removeItem(item) {
 .ghost-btn {
   flex: 1;
   height: 68rpx;
-  border-radius: 999rpx;
-  color: $text-soft;
   font-size: 26rpx;
-  background: rgba(255, 255, 255, 0.58);
+  @include liquid-secondary-button;
 }
 
 .save-btn {

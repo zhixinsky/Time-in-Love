@@ -1,0 +1,53 @@
+@use './animation.scss' as anim;
+
+/**
+ * 发布抽屉玻璃态
+ * 注意：backdrop-filter 在 scroll-view 内多层叠加会导致 Skyline 滑动严重掉帧，
+ * 滚动区域仅用渐变模拟磨砂，模糊仅保留在遮罩单层。
+ */
+
+@mixin liquid-glass-surface {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    152deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 250, 252, 0.82) 48%,
+    rgba(255, 246, 250, 0.76) 100%
+  );
+  border: 1rpx solid rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 10rpx 32rpx rgba(130, 95, 125, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+}
+
+@mixin liquid-glass-shine {
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 0;
+    height: 42%;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    content: '';
+  }
+}
+
+@mixin publish-cta-gradient {
+  background: linear-gradient(
+    118deg,
+    #ffc4b0 0%,
+    #ffadc4 28%,
+    #f59ab8 58%,
+    #e892b8 100%
+  );
+}
+
+/** 仅首屏入场一次，勿加 will-change */
+@mixin publish-section-enter($delay: 0ms) {
+  animation: publishBlockIn 400ms anim.$skyline-ease both;
+  animation-delay: $delay;
+}

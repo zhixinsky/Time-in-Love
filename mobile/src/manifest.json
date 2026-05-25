@@ -26,6 +26,12 @@
         "disableABTest": true,
         "defaultContentBox": true
       }
+    },
+    "requiredPrivateInfos": ["chooseLocation"],
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于在地图上选择心动日记的发生地点"
+      }
     }
   }
 }

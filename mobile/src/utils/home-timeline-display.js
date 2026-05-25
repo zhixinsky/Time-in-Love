@@ -1,34 +1,22 @@
 import { resolveMediaUrl } from '../services/request'
 import { parseYmd } from './diary-date'
+import { mapTimelineMediaItem, resolveVideoPoster } from './media-display'
 
 const WEEK_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-
-function mapMediaItem(raw) {
-  if (!raw) return null
-  const type = raw.type === 'video' ? 'video' : 'image'
-  const url = resolveMediaUrl(raw.url)
-  const poster = resolveMediaUrl(raw.coverUrl || raw.url)
-  if (!url && !poster) return null
-  return {
-    type,
-    url: url || poster,
-    poster: poster || url,
-    duration: Number(raw.duration || 0)
-  }
-}
 
 export function mapHomeTimelineItem(item) {
   const dateStr = String(item?.date || '').slice(0, 10)
   const dateObj = dateStr ? parseYmd(dateStr) : new Date()
   const media = (item?.mediaList || [])
-    .map(mapMediaItem)
+    .map(mapTimelineMediaItem)
     .filter(Boolean)
 
-  // 兼容旧数据：仅有 coverImage 时补一条
+  // 兼容旧数据：仅有 coverImage 时补一条（跳过视频 URL）
   if (!media.length && item?.coverImage) {
     const cover = resolveMediaUrl(item.coverImage)
-    if (cover) {
-      media.push({ type: 'image', url: cover, poster: cover, duration: 0 })
+    const asPoster = resolveVideoPoster(cover, '') || cover
+    if (asPoster) {
+      media.push({ type: 'image', url: asPoster, poster: asPoster, duration: 0 })
     }
   }
 

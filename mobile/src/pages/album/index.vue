@@ -104,7 +104,7 @@ function goDiary() {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
-  padding: 30rpx;
+  padding: 34rpx 30rpx;
 }
 
 .stats-num,
@@ -130,15 +130,16 @@ function goDiary() {
 .masonry {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18rpx;
+  gap: 22rpx;
 }
 
 .media-card {
   position: relative;
   min-height: 260rpx;
-  border-radius: 32rpx;
+  border-radius: 38rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.42);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
   box-shadow: $shadow;
 }
 
@@ -235,10 +236,9 @@ function goDiary() {
   min-width: 142rpx;
   height: 64rpx;
   margin-top: 26rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 26rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  @include jelly-primary-button;
 }
 </style>

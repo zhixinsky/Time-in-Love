@@ -91,7 +91,7 @@ async function saveAnswer() {
 .question-card,
 .answer-card,
 .history-card {
-  padding: 34rpx;
+  padding: 36rpx;
 }
 
 .question-tag {
@@ -103,7 +103,11 @@ async function saveAnswer() {
   color: #fff;
   font-size: 22rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  background: rgba(255, 255, 255, 0.42);
+  color: #9a657a;
+  border: 1rpx solid rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .question {
@@ -130,7 +134,7 @@ async function saveAnswer() {
   border-radius: 999rpx;
   color: $text-soft;
   font-size: 22rpx;
-  background: rgba(255, 255, 255, 0.62);
+  @include liquid-secondary-button;
 }
 
 .card-title {
@@ -148,11 +152,10 @@ async function saveAnswer() {
   min-height: 190rpx;
   padding: 24rpx;
   margin-top: 22rpx;
-  border-radius: 28rpx;
   color: $text-main;
   font-size: 28rpx;
   line-height: 1.55;
-  background: rgba(255, 255, 255, 0.72);
+  @include apple-liquid-input;
 }
 
 .save-btn {
@@ -161,11 +164,10 @@ async function saveAnswer() {
   width: 100%;
   height: 72rpx;
   margin-top: 24rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 28rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  @include jelly-primary-button;
 }
 
 .section-title {
@@ -178,7 +180,7 @@ async function saveAnswer() {
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 22rpx;
 }
 
 .history-date,

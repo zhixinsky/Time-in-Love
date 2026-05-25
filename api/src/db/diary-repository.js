@@ -80,7 +80,10 @@ async function mediaMapByDiaryIds(diaryIds = []) {
 }
 
 function mapTimelineItem(diary, media = []) {
-  const cover = media.find((item) => item.type === 'video') || media.find((item) => item.type === 'image')
+  const cover =
+    media.find((item) => item.type === 'image') ||
+    media.find((item) => item.type === 'video' && item.coverUrl) ||
+    media.find((item) => item.type === 'video')
   const content = (diary.content || '').replace(/\s+/g, ' ').trim()
   return {
     id: diary.id,

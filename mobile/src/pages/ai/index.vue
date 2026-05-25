@@ -102,26 +102,26 @@ function copyResult() {
   height: 112rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.45);
   box-shadow: $shadow;
 }
 
 .features {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18rpx;
+  gap: 20rpx;
 }
 
 .feature {
   min-height: 134rpx;
   padding: 26rpx;
-  border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: $shadow;
+  @include apple-liquid-card;
+  border-radius: 42rpx;
 }
 
 .feature.active {
-  background: linear-gradient(135deg, rgba(255, 143, 183, 0.88), rgba(201, 167, 255, 0.88));
+  background: linear-gradient(135deg, rgba(255, 143, 177, 0.54), rgba(255, 182, 201, 0.48), rgba(255, 200, 184, 0.46));
+  border-color: rgba(255, 255, 255, 0.78);
 }
 
 .feature-title,
@@ -143,13 +143,13 @@ function copyResult() {
 
 .feature.active .feature-title,
 .feature.active .feature-sub {
-  color: #fff;
+  color: $text-main;
 }
 
 .input-card,
 .result-card {
-  padding: 32rpx;
-  margin-top: 26rpx;
+  padding: 36rpx;
+  margin-top: 32rpx;
 }
 
 .card-title {
@@ -167,11 +167,10 @@ function copyResult() {
   min-height: 180rpx;
   padding: 24rpx;
   margin-top: 20rpx;
-  border-radius: 26rpx;
   color: $text-main;
   font-size: 28rpx;
   line-height: 1.5;
-  background: rgba(255, 255, 255, 0.72);
+  @include apple-liquid-input;
 }
 
 .generate-btn {
@@ -180,11 +179,10 @@ function copyResult() {
   width: 100%;
   height: 74rpx;
   margin-top: 24rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 28rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  @include jelly-primary-button;
 }
 
 .result-head {

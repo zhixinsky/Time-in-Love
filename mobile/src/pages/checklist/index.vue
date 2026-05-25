@@ -159,12 +159,10 @@ function formatDone(value) {
 .save-btn {
   min-width: 128rpx;
   height: 64rpx;
-  border-radius: 999rpx;
   color: #fff;
   font-size: 26rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
-  box-shadow: 0 14rpx 26rpx rgba(255, 143, 183, 0.22);
+  @include jelly-primary-button;
 }
 
 .progress-track {
@@ -174,20 +172,21 @@ function formatDone(value) {
   margin-top: 26rpx;
   border-radius: 999rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.64);
+  background: rgba(255, 255, 255, 0.42);
+  border: 1rpx solid rgba(255, 255, 255, 0.54);
 }
 
 .progress-fill {
   height: 100%;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #ff8fb7, #c9a7ff);
+  background: $jelly-gradient;
   transition: width 0.28s ease;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 22rpx;
 }
 
 .item-card {
@@ -215,7 +214,7 @@ function formatDone(value) {
 
 .item-card.done .check {
   border-color: transparent;
-  background: linear-gradient(135deg, #ff8fb7, #c9a7ff);
+  background: $jelly-gradient;
 }
 
 .item-card.done .item-title {
@@ -248,7 +247,8 @@ function formatDone(value) {
   color: #fff;
   font-size: 20rpx;
   font-weight: 800;
-  background: #ff8fb7;
+  background: rgba(255, 143, 177, 0.76);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.52);
 }
 
 .remove {
@@ -270,7 +270,9 @@ function formatDone(value) {
   display: flex;
   align-items: flex-end;
   padding: 24rpx;
-  background: rgba(84, 60, 86, 0.22);
+  background: rgba(84, 60, 86, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .editor {
@@ -286,10 +288,9 @@ function formatDone(value) {
   min-height: 82rpx;
   padding: 0 24rpx;
   margin-top: 22rpx;
-  border-radius: 24rpx;
   color: $text-main;
   font-size: 28rpx;
-  background: rgba(255, 255, 255, 0.72);
+  @include apple-liquid-input;
 }
 
 .picker-row {
@@ -308,10 +309,8 @@ function formatDone(value) {
 .ghost-btn {
   flex: 1;
   height: 68rpx;
-  border-radius: 999rpx;
-  color: $text-soft;
   font-size: 26rpx;
-  background: rgba(255, 255, 255, 0.58);
+  @include liquid-secondary-button;
 }
 
 .save-btn {

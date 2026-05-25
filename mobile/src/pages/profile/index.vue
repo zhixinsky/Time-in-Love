@@ -148,7 +148,8 @@ function resetSpace() {
   height: 96rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.42);
+  border: 1rpx solid rgba(255, 255, 255, 0.64);
 }
 
 .list {
