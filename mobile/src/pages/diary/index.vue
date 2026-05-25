@@ -108,40 +108,14 @@
       </view>
 
       <view class="history-block">
-        <view class="history-head">
-          <text class="history-title">心动记录</text>
-          <text class="history-all tap-scale" @tap="showAllTip">全部 ›</text>
-        </view>
-        <view v-if="!diary.timelineList.length" class="history-empty glass-card">
-          <text>更多回忆会出现在这里</text>
-        </view>
-        <view
-          v-for="(item, index) in diary.timelineList"
-          :key="item.id"
-          class="history-item glass-card tap-scale"
-          @tap="openTimelineItem(item)"
-        >
-          <view class="history-timeline" aria-hidden="true">
-            <view class="history-dot" />
-            <view v-if="index < diary.timelineList.length - 1" class="history-line" />
-          </view>
-          <view class="history-main">
-            <view class="history-title-row">
-              <text class="history-item-title">{{ item.contentPreview || '心动瞬间' }}</text>
-              <text v-if="item.isAnniversary" class="history-tag">纪念日</text>
-            </view>
-            <text class="history-date">{{ formatTimelineDate(item.date) }}</text>
-            <text class="history-days">
-              恋爱第 <text class="history-days-num">{{ item.loveDay }}</text> 天
-            </text>
-          </view>
-          <image
-            v-if="timelineCover(item)"
-            class="history-thumb"
-            :src="timelineCover(item)"
-            mode="aspectFill"
-          />
-        </view>
+        <DiaryTimelineSection
+          title="心动记录"
+          :items="historyItems"
+          layout="full"
+          empty-text="更多回忆会出现在这里"
+          @item-tap="openTimelineItem"
+          @media-tap="onHistoryMediaTap"
+        />
       </view>
 
         <view class="scroll-bottom-spacer" />
@@ -162,6 +136,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import DiaryDateStrip from '../../components/DiaryDateStrip.vue'
 import PageLiquidBg from '../../components/PageLiquidBg.vue'
 import PageNavBar from '../../components/PageNavBar.vue'
+import DiaryTimelineSection from '../../components/DiaryTimelineSection.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDiaryStore } from '../../stores/diary'
@@ -169,6 +144,8 @@ import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
 import { weatherIconFor } from '../../utils/diary-meta-options'
 import { resolveMediaUrl } from '../../services/request'
 import { resolveVideoPoster } from '../../utils/media-display'
+import { mapHomeTimelineItem } from '../../utils/home-timeline-display'
+import { markMediaPreviewOpening } from '../../utils/media-preview'
 
 const diary = useDiaryStore()
 const { selectedDate } = storeToRefs(diary)
@@ -192,6 +169,10 @@ const displayImages = computed(() =>
 
 const displayVideos = computed(() =>
   diary.currentMedia.filter((m) => m.type === 'video').slice(0, 1)
+)
+
+const historyItems = computed(() =>
+  (diary.timelineList || []).slice(0, 10).map(mapHomeTimelineItem)
 )
 
 const metaItems = computed(() => {
@@ -222,16 +203,8 @@ const publishTime = computed(() =>
   formatDiaryTime(diary.currentDiary?.createdAt)
 )
 
-function formatTimelineDate(ymd) {
-  return (ymd || '').replace(/-/g, '.')
-}
-
 function videoCover(video) {
   return resolveVideoPoster(video.coverUrl, video.url)
-}
-
-function timelineCover(item) {
-  return item.coverImage ? resolveMediaUrl(item.coverImage) : ''
 }
 
 function onPickDate(e) {
@@ -254,6 +227,34 @@ function previewImages(index) {
 function playVideo(video) {
   const url = resolveMediaUrl(video.url)
   // #ifdef MP-WEIXIN
+  uni.previewMedia({ sources: [{ url, type: 'video' }] })
+  // #endif
+  // #ifndef MP-WEIXIN
+  uni.showToast({ title: '请在微信小程序中播放', icon: 'none' })
+  // #endif
+}
+
+function onHistoryMediaTap({ item, index }) {
+  const media = item?.media?.[index]
+  if (!media) return
+  if (media.type === 'video') {
+    playHistoryVideo(media)
+    return
+  }
+  const urls = item.media.filter((m) => m.type === 'image').map((m) => m.url)
+  if (!urls.length) return
+  markMediaPreviewOpening()
+  uni.previewImage({
+    current: media.url,
+    urls
+  })
+}
+
+function playHistoryVideo(media) {
+  const url = media?.url
+  if (!url) return
+  // #ifdef MP-WEIXIN
+  markMediaPreviewOpening()
   uni.previewMedia({ sources: [{ url, type: 'video' }] })
   // #endif
   // #ifndef MP-WEIXIN
@@ -286,14 +287,11 @@ function openTimelineItem(item) {
     void diary.fetchDiaryById(item.id)
     return
   }
-  if (item?.date) {
+  const date = item?.eventDate || item?.date
+  if (date) {
     expanded.value = false
-    void diary.selectDate(item.date)
+    void diary.selectDate(date)
   }
-}
-
-function showAllTip() {
-  uni.showToast({ title: '时间线展示最近记录', icon: 'none' })
 }
 
 onShow(async () => {
@@ -610,7 +608,7 @@ onShow(async () => {
 .history-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 16rpx;
   padding: 0 8rpx;
 }
@@ -621,96 +619,251 @@ onShow(async () => {
   color: #4a3d52;
 }
 
-.history-all {
-  font-size: 24rpx;
-  color: #9b8c9f;
+.timeline-list--diary {
+  margin-top: 0;
 }
 
-.history-item {
+.timeline-item {
   display: flex;
-  gap: 16rpx;
-  padding: 22rpx 20rpx;
-  margin-bottom: 20rpx;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10rpx;
 }
 
-.history-timeline {
-  width: 28rpx;
+.timeline-rail {
+  position: relative;
+  width: 58rpx;
+  flex-shrink: 0;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.timeline-date {
+  z-index: 3;
+  margin-bottom: 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(63, 48, 72, 0.74);
+  padding-bottom: 4rpx;
+}
+
+.date-main {
+  font-size: 21rpx;
+  font-weight: 620;
+}
+
+.date-week {
+  margin-top: 5rpx;
+  font-size: 17rpx;
+  font-weight: 480;
+}
+
+.timeline-dot {
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
-}
-
-.history-dot {
-  width: 20rpx;
-  height: 20rpx;
+  width: 28rpx;
+  height: 28rpx;
   border-radius: 50%;
-  border: 3rpx solid rgba(255, 143, 177, 0.74);
-  background: rgba(255, 255, 255, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24rpx rgba(255, 102, 172, 0.32);
 }
 
-.history-line {
+.dot-icon {
+  color: #fff;
+  font-size: 16rpx;
+  line-height: 1;
+}
+
+.timeline-dot--date {
+  background: linear-gradient(135deg, #ff77ad, #f2609c);
+}
+
+.timeline-dot--daily {
+  background: linear-gradient(135deg, #a98cff, #7f61ee);
+}
+
+.timeline-line {
   flex: 1;
   width: 2rpx;
-  min-height: 40rpx;
-  margin-top: 6rpx;
-  background: linear-gradient(180deg, rgba(255, 130, 174, 0.35), transparent);
+  min-height: 56rpx;
+  margin-top: 10rpx;
+  margin-bottom: 12rpx;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 128, 186, 0.42) 0%,
+    rgba(177, 132, 255, 0.28) 100%
+  );
+  border-radius: 2rpx;
 }
 
-.history-main {
+.memory-card {
   flex: 1;
   min-width: 0;
+  @include moona-memory-card;
 }
 
-.history-title-row {
+.memory-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.memory-title-wrap {
   display: flex;
   align-items: center;
   gap: 10rpx;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
-.history-item-title {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #4a3d52;
+.memory-title {
+  font-size: 26rpx;
+  line-height: 1.25;
+  font-weight: 620;
+  color: rgba(34, 23, 42, 0.88);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 360rpx;
+  max-width: 420rpx;
 }
 
-.history-tag {
-  padding: 4rpx 14rpx;
+.memory-tag {
+  flex-shrink: 0;
+  padding: 5rpx 14rpx;
   border-radius: 999rpx;
   font-size: 20rpx;
-  color: #ff82ae;
-  background: rgba(255, 200, 220, 0.45);
+  font-weight: 580;
+  color: #f05b99;
+  background: rgba(255, 213, 231, 0.72);
+  white-space: nowrap;
 }
 
-.history-date {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  color: #9b8c9f;
-}
-
-.history-days {
-  display: block;
-  margin-top: 4rpx;
+.memory-more {
+  color: #9d8aa4;
   font-size: 24rpx;
-  color: #7b6c85;
+  letter-spacing: 4rpx;
 }
 
-.history-days-num {
-  color: #ff82ae;
-  font-weight: 800;
+.memory-copy {
+  margin-top: 16rpx;
+  font-size: 23rpx;
+  line-height: 1.55;
+  font-weight: 430;
+  color: rgba(67, 51, 75, 0.66);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.history-thumb {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 18rpx;
-  flex-shrink: 0;
+.memory-media {
+  margin-top: 14rpx;
+}
+
+/* Skyline：横向 scroll-view 必须固定高度，勿用 enable-flex */
+.memory-media-host--scroll {
+  width: 100%;
+  height: 92rpx;
+  overflow: hidden;
+}
+
+.memory-images-scroll {
+  width: 100%;
+  height: 92rpx;
+  white-space: nowrap;
+}
+
+.memory-images-inner {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8rpx;
+  height: 92rpx;
+  padding-right: 8rpx;
+  box-sizing: border-box;
+}
+
+.memory-images {
+  display: flex;
+  flex-direction: row;
+  gap: 8rpx;
+}
+
+.memory-video-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #f5dce8, #e8dcf5);
+}
+
+.memory-image {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 92rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.memory-image--scroll {
+  flex: 0 0 132rpx;
+  width: 132rpx;
+  min-width: 132rpx;
+  height: 92rpx;
+}
+
+.memory-image-photo {
+  width: 100%;
+  height: 100%;
+}
+
+.video-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18rpx;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  transform: translate(-50%, -50%);
+}
+
+.video-time {
+  position: absolute;
+  right: 8rpx;
+  bottom: 8rpx;
+  z-index: 2;
+  padding: 2rpx 8rpx;
+  border-radius: 999rpx;
+  color: #fff;
+  font-size: 18rpx;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.memory-footer {
+  margin-top: 14rpx;
+}
+
+.memory-mood {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 21rpx;
+  font-weight: 650;
+  color: rgba(92, 73, 99, 0.68);
 }
 
 .scroll-bottom-spacer {

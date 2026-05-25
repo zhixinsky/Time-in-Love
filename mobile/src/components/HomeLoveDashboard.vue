@@ -1,125 +1,16 @@
 <template>
   <view class="love-dashboard">
     <view class="timeline-panel moona-glass">
-      <view class="timeline-head">
-        <text class="panel-title">恋爱时间线</text>
-        <view class="timeline-filter tap-scale" @tap="goDiaryAll">
-          <text>全部</text>
-          <text class="filter-chevron">›</text>
-        </view>
-      </view>
-
-      <view class="timeline-body">
-        <scroll-view class="timeline-scroll" scroll-y :show-scrollbar="false">
-        <view v-if="timelineLoading" class="timeline-empty">
-          <text>加载中…</text>
-        </view>
-        <view v-else-if="!timelineItems.length" class="timeline-empty">
-          <text>还没有记录，去写下第一个心动瞬间吧～</text>
-        </view>
-        <view v-else class="timeline-list">
-          <view
-            v-for="(item, index) in timelineItems"
-            :key="item.id"
-            class="timeline-item"
-          >
-            <view class="timeline-rail">
-              <view class="timeline-date">
-                <text class="date-main">{{ item.date }}</text>
-                <text class="date-week">{{ item.week }}</text>
-              </view>
-              <view :class="['timeline-dot', `timeline-dot--${item.type}`]">
-                <text class="dot-icon">{{ item.type === 'date' ? '♥' : '✎' }}</text>
-              </view>
-              <view v-if="index !== timelineItems.length - 1" class="timeline-line" />
-            </view>
-            <view
-              :class="['memory-card', `memory-card--${item.type}`]"
-              @tap="openTimelineItem(item)"
-            >
-              <view class="memory-top">
-                <view class="memory-title-wrap">
-                  <text class="memory-title">{{ item.title }}</text>
-                  <text class="memory-tag">{{ item.tag }}</text>
-                </view>
-                <text class="memory-more">•••</text>
-              </view>
-              <text class="memory-copy">{{ item.copy }}</text>
-              <view v-if="item.media.length" class="memory-media">
-                <view
-                  :class="['memory-media-host', { 'memory-media-host--scroll': item.media.length > 3 }]"
-                >
-                  <scroll-view
-                    v-if="item.media.length > 3"
-                    class="memory-images-scroll"
-                    scroll-x
-                    enhanced
-                    :show-scrollbar="false"
-                  >
-                    <view class="memory-images-inner">
-                      <view
-                        v-for="(media, mediaIndex) in item.media"
-                        :key="`${item.id}-m-${mediaIndex}`"
-                        class="memory-image memory-image--scroll tap-scale"
-                        @tap.stop="onMediaTap(item, mediaIndex)"
-                      >
-                        <image
-                          v-if="mediaDisplaySrc(media)"
-                          class="memory-image-photo"
-                          :src="mediaDisplaySrc(media)"
-                          mode="aspectFill"
-                        />
-                        <view v-else class="memory-video-ph" />
-                        <view v-if="media.type === 'video'" class="video-badge">
-                          <text>▶</text>
-                        </view>
-                        <text
-                          v-if="media.type === 'video' && media.duration"
-                          class="video-time"
-                        >
-                          {{ formatVideoDuration(media.duration) }}
-                        </text>
-                      </view>
-                    </view>
-                  </scroll-view>
-                  <view v-else class="memory-images">
-                    <view
-                      v-for="(media, mediaIndex) in item.media"
-                      :key="`${item.id}-m-${mediaIndex}`"
-                      class="memory-image tap-scale"
-                      @tap.stop="onMediaTap(item, mediaIndex)"
-                    >
-                      <image
-                        v-if="mediaDisplaySrc(media)"
-                        class="memory-image-photo"
-                        :src="mediaDisplaySrc(media)"
-                        mode="aspectFill"
-                      />
-                      <view v-else class="memory-video-ph" />
-                      <view v-if="media.type === 'video'" class="video-badge">
-                        <text>▶</text>
-                      </view>
-                      <text
-                        v-if="media.type === 'video' && media.duration"
-                        class="video-time"
-                      >
-                        {{ formatVideoDuration(media.duration) }}
-                      </text>
-                    </view>
-                  </view>
-                </view>
-              </view>
-              <view v-if="item.mood" class="memory-footer">
-                <view class="memory-mood">
-                  <text>{{ item.moodIcon }}</text>
-                  <text>{{ item.mood }}</text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-        </scroll-view>
-      </view>
+      <DiaryTimelineSection
+        title="恋爱时间线"
+        :items="timelineItems"
+        :loading="timelineLoading"
+        :show-all="true"
+        layout="panel"
+        @all="goDiaryAll"
+        @item-tap="openTimelineItem"
+        @media-tap="onTimelineMediaTap"
+      />
     </view>
 
     <view class="side-stack">
@@ -219,8 +110,8 @@ import { computed } from 'vue'
 import { useDiaryStore } from '../stores/diary'
 import { useLoveStore } from '../stores/love'
 import { daysUntilNextDate, mapHomeTimelineItem } from '../utils/home-timeline-display'
-import { formatVideoDuration } from '../utils/diary-date'
 import { markMediaPreviewOpening } from '../utils/media-preview'
+import DiaryTimelineSection from './DiaryTimelineSection.vue'
 
 const props = defineProps({
   loading: { type: Boolean, default: false }
@@ -276,13 +167,7 @@ function openTimelineItem(item) {
   uni.redirectTo({ url })
 }
 
-function mediaDisplaySrc(media) {
-  if (!media) return ''
-  if (media.type === 'video') return media.poster || ''
-  return media.poster || media.url || ''
-}
-
-function onMediaTap(item, index) {
+function onTimelineMediaTap({ item, index }) {
   const media = item?.media?.[index]
   if (!media) return
   if (media.type === 'video') {
