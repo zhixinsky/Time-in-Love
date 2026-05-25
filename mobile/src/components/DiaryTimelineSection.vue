@@ -48,7 +48,13 @@
                   <text class="memory-title">{{ item.title }}</text>
                   <text class="memory-tag">{{ item.tag }}</text>
                 </view>
-                <text class="memory-more">•••</text>
+                <view
+                  v-if="canShowCardActions(item)"
+                  class="memory-more-btn tap-scale"
+                  @tap.stop="$emit('card-action', item)"
+                >
+                  <text class="memory-more">•••</text>
+                </view>
               </view>
 
               <text class="memory-copy">{{ item.copy }}</text>
@@ -163,7 +169,13 @@
                   <text class="memory-title">{{ item.title }}</text>
                   <text class="memory-tag">{{ item.tag }}</text>
                 </view>
-                <text class="memory-more">•••</text>
+                <view
+                  v-if="canShowCardActions(item)"
+                  class="memory-more-btn tap-scale"
+                  @tap.stop="$emit('card-action', item)"
+                >
+                  <text class="memory-more">•••</text>
+                </view>
               </view>
 
               <text class="memory-copy">{{ item.copy }}</text>
@@ -251,7 +263,7 @@
 <script setup>
 import { formatVideoDuration } from '../utils/diary-date'
 
-defineProps({
+const props = defineProps({
   title: { type: String, default: '恋爱时间线' },
   items: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
@@ -259,10 +271,15 @@ defineProps({
   showAll: { type: Boolean, default: false },
   allText: { type: String, default: '全部' },
   /** panel：首页左侧时间线面板；full：日记页全宽展示 */
-  layout: { type: String, default: 'panel' }
+  layout: { type: String, default: 'panel' },
+  showCardActions: { type: Boolean, default: false }
 })
 
-defineEmits(['all', 'item-tap', 'media-tap'])
+defineEmits(['all', 'item-tap', 'media-tap', 'card-action'])
+
+function canShowCardActions(item) {
+  return props.showCardActions && !!item?.id && item.type !== 'date'
+}
 
 function mediaDisplaySrc(media) {
   if (!media) return ''
@@ -284,6 +301,7 @@ function mediaDisplaySrc(media) {
 .timeline-section--panel {
   flex: 1;
   min-height: 0;
+  height: 100%;
 }
 
 .timeline-head {
@@ -341,6 +359,7 @@ function mediaDisplaySrc(media) {
 .timeline-section--panel .timeline-body {
   flex: 1;
   min-height: 0;
+  height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -352,7 +371,7 @@ function mediaDisplaySrc(media) {
 
 .timeline-section--panel .timeline-scroll {
   flex: 1;
-  height: 100%;
+  height: 0;
   min-height: 0;
   padding: 0 18rpx 24rpx;
 }
@@ -449,7 +468,7 @@ function mediaDisplaySrc(media) {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 24rpx rgba(255, 102, 172, 0.32);
+  box-shadow: 0 0 12rpx rgba(255, 102, 172, 0.18);
 }
 
 .timeline-section--panel .timeline-dot {
@@ -501,6 +520,13 @@ function mediaDisplaySrc(media) {
   flex: 1;
   min-width: 0;
   @include moona-memory-card;
+  /* 时间线列表滚动中避免多张卡片同时做 backdrop-filter 采样 */
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 247, 252, 0.78)),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8rpx 24rpx rgba(130, 88, 145, 0.05), inset 0 1rpx 0 rgba(255, 255, 255, 0.68);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .timeline-section--panel .memory-card {
@@ -568,6 +594,15 @@ function mediaDisplaySrc(media) {
   color: #9d8aa4;
   font-size: 24rpx;
   letter-spacing: 4rpx;
+}
+
+.memory-more-btn {
+  flex-shrink: 0;
+  min-width: 44rpx;
+  min-height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .memory-copy {

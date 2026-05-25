@@ -35,6 +35,7 @@ import {
   generateAiSummaryHandler,
   getDiaryByDateHandler,
   getDiaryDetailHandler,
+  getRecentDiaryDetailsHandler,
   getTimelineHandler,
   updateDiaryHandler
 } from '../controllers/diary-controller.js'
@@ -128,6 +129,7 @@ apiRouter.get('/spaces/:spaceId/diaries/latest', asyncHandler(async (req, res) =
 const diaryRouter = Router()
 diaryRouter.use(requireAuth)
 diaryRouter.get('/by-date', asyncHandler(getDiaryByDateHandler))
+diaryRouter.get('/recent-details', asyncHandler(getRecentDiaryDetailsHandler))
 diaryRouter.get('/timeline', asyncHandler(getTimelineHandler))
 diaryRouter.post('/', asyncHandler(createDiaryHandler))
 diaryRouter.get('/:id', asyncHandler(getDiaryDetailHandler))

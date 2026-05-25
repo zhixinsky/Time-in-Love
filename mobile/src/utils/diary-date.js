@@ -53,15 +53,34 @@ export function buildDateStrip(centerYmd, radius = 45) {
   return items
 }
 
-/** 以周日为一周起点，weekOffset 为相对锚点日所在周的偏移 */
+/** 以周一为一周起点，weekOffset 为相对锚点日所在周的偏移 */
 export function buildWeekDays(anchorYmd, weekOffset = 0) {
-  const anchor = parseYmd(anchorYmd)
+  const anchor = parseYmd(normalizeYmd(anchorYmd) || formatYmd(new Date()))
   const start = new Date(anchor)
-  start.setDate(anchor.getDate() - anchor.getDay() + weekOffset * 7)
+  const day = anchor.getDay()
+  const mondayOffset = day === 0 ? 6 : day - 1
+  start.setDate(anchor.getDate() - mondayOffset + weekOffset * 7)
   const todayYmd = formatYmd(new Date())
   return Array.from({ length: 7 }, (_, i) => {
     const date = new Date(start)
     date.setDate(start.getDate() + i)
+    const ymd = formatYmd(date)
+    return {
+      ymd,
+      weekday: WEEKDAY_SHORT[date.getDay()],
+      day: date.getDate(),
+      isToday: ymd === todayYmd
+    }
+  })
+}
+
+/** 固定展示最近 count 天，最右侧始终是今天 */
+export function buildRecentDays(count = 7, endYmd = formatYmd(new Date())) {
+  const end = parseYmd(normalizeYmd(endYmd) || formatYmd(new Date()))
+  const todayYmd = formatYmd(new Date())
+  return Array.from({ length: count }, (_, i) => {
+    const date = new Date(end)
+    date.setDate(end.getDate() - (count - 1 - i))
     const ymd = formatYmd(date)
     return {
       ymd,

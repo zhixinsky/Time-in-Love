@@ -42,6 +42,18 @@ function normalizeMedia(row) {
   }
 }
 
+function detailPayload(diary, media = []) {
+  if (!diary) {
+    return { diary: null, mediaList: [], author: null, aiSummary: '' }
+  }
+  return {
+    diary,
+    mediaList: media,
+    author: { id: diary.userId, nickname: '我', avatar: '💕' },
+    aiSummary: diary.aiSummary
+  }
+}
+
 function selectDiarySql(where) {
   return `SELECT id, space_id AS spaceId, user_id AS userId, content, mood, weather, temperature,
                  location_name AS locationName, location_lat AS locationLat, location_lng AS locationLng,
@@ -116,7 +128,38 @@ export async function findByDate(spaceId, userId, date) {
   )
   const diary = normalizeDiary(rows?.[0])
   if (!diary) return null
-  return { diary, mediaList: await mediaByDiaryId(diary.id), author: { id: diary.userId, nickname: '我', avatar: '💕' }, aiSummary: diary.aiSummary }
+  return detailPayload(diary, await mediaByDiaryId(diary.id))
+}
+
+export async function findRecentDetails(spaceId, userId, dates = []) {
+  const normalizedDates = [...new Set((dates || []).map(formatDate).filter(Boolean))]
+  if (!normalizedDates.length) return []
+
+  const placeholders = normalizedDates.map(() => '?').join(',')
+  const rows = await dbQuery(
+    `${selectDiarySql(`space_id = ? AND diary_date IN (${placeholders}) AND deleted_at IS NULL AND ${canViewSql(userId)}`)}
+     ORDER BY diary_date DESC, created_at DESC`,
+    [spaceId, ...normalizedDates]
+  )
+
+  const diaryMap = new Map()
+  for (const row of rows || []) {
+    const diary = normalizeDiary(row)
+    const key = formatDate(diary?.diaryDate)
+    if (key && !diaryMap.has(key)) {
+      diaryMap.set(key, diary)
+    }
+  }
+
+  const mediaMap = await mediaMapByDiaryIds([...diaryMap.values()].map((item) => item.id))
+  return normalizedDates.map((date) => {
+    const diary = diaryMap.get(date) || null
+    return {
+      date,
+      hasDiary: Boolean(diary),
+      detail: detailPayload(diary, diary ? mediaMap.get(diary.id) || [] : [])
+    }
+  })
 }
 
 export async function timeline(spaceId, userId, page = 1, pageSize = 10) {
@@ -143,7 +186,7 @@ export async function findById(spaceId, userId, id) {
   )
   const diary = normalizeDiary(rows?.[0])
   if (!diary) return null
-  return { diary, mediaList: await mediaByDiaryId(diary.id), author: { id: diary.userId, nickname: '我', avatar: '💕' }, aiSummary: diary.aiSummary }
+  return detailPayload(diary, await mediaByDiaryId(diary.id))
 }
 
 async function replaceMedia(diaryId, mediaList = [], createdAt = new Date()) {

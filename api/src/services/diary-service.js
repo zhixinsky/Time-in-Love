@@ -2,6 +2,7 @@ import * as store from '../data/diary-store.js'
 import * as diaryRepo from '../db/diary-repository.js'
 import { isDbEnabled } from '../db/pool.js'
 import { generateLoveDiarySummary } from './ai-service.js'
+import { formatYmdLocal } from '../utils/date.js'
 
 async function tryDb(label, fn) {
   if (!isDbEnabled()) return null
@@ -17,6 +18,26 @@ export async function fetchByDate(spaceId, userId, date) {
   const data = await tryDb('fetch by date', () => diaryRepo.findByDate(spaceId, userId, date))
   if (data) return data
   return store.getDiaryByDate(spaceId, userId, date)
+}
+
+function buildRecentDateKeys(days = 7, endDate) {
+  const end = new Date(`${formatYmdLocal(endDate || new Date())}T00:00:00`)
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(end)
+    date.setDate(end.getDate() - (days - 1 - index))
+    return formatYmdLocal(date)
+  })
+}
+
+export async function fetchRecentDetails(spaceId, userId, days = 7, endDate) {
+  const dates = buildRecentDateKeys(days, endDate)
+  const data = await tryDb('fetch recent details', () => diaryRepo.findRecentDetails(spaceId, userId, dates))
+  const items = data || store.getRecentDiaryDetails(spaceId, userId, dates)
+  return {
+    days,
+    endDate: dates[dates.length - 1] || formatYmdLocal(new Date()),
+    items
+  }
 }
 
 export async function fetchTimeline(spaceId, userId, page, pageSize) {

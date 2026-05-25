@@ -131,6 +131,13 @@ textarea::placeholder {
   min-width: 0;
 }
 
+.app-nav__title-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  min-width: 0;
+}
+
 .app-nav__title {
   display: block;
   color: $text-main;
@@ -138,6 +145,12 @@ textarea::placeholder {
   font-weight: 700;
   line-height: $page-title-line-height;
   text-align: left;
+}
+
+.app-nav__title-action {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .app-nav__subtitle {

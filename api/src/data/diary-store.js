@@ -141,6 +141,40 @@ export function getDiaryByDate(spaceId, userId, date) {
   }
 }
 
+export function getRecentDiaryDetails(spaceId, userId, dates = []) {
+  const normalizedDates = [...new Set((dates || []).filter(Boolean))]
+  const visible = activeDiaries(spaceId)
+    .filter((d) => canView(d, userId))
+    .sort((a, b) => {
+      const dateCmp = b.diaryDate.localeCompare(a.diaryDate)
+      if (dateCmp !== 0) return dateCmp
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    })
+
+  const diaryMap = new Map()
+  for (const diary of visible) {
+    if (!diaryMap.has(diary.diaryDate)) {
+      diaryMap.set(diary.diaryDate, diary)
+    }
+  }
+
+  return normalizedDates.map((date) => {
+    const diary = diaryMap.get(date) || null
+    return {
+      date,
+      hasDiary: Boolean(diary),
+      detail: diary
+        ? {
+            diary,
+            mediaList: getMediaByDiaryId(diary.id),
+            author: authorOf(diary.userId),
+            aiSummary: diary.aiSummary || ''
+          }
+        : { diary: null, mediaList: [], author: null, aiSummary: '' }
+    }
+  })
+}
+
 export function getTimeline(spaceId, userId, page = 1, pageSize = 10) {
   const list = activeDiaries(spaceId)
     .filter((d) => canView(d, userId))

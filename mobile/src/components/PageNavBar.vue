@@ -8,7 +8,12 @@
             <image class="app-nav__back-icon" :src="backIcon" mode="aspectFit" />
           </view>
           <view class="app-nav__copy">
-            <text class="app-nav__title">{{ title }}</text>
+            <view class="app-nav__title-row">
+              <text class="app-nav__title">{{ title }}</text>
+              <view v-if="$slots.titleAction" class="app-nav__title-action">
+                <slot name="titleAction" />
+              </view>
+            </view>
             <text v-if="subtitle" class="app-nav__subtitle">{{ subtitle }}</text>
           </view>
         </view>

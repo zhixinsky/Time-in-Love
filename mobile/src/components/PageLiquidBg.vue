@@ -1,15 +1,21 @@
 <template>
   <view class="page-liquid-bg" aria-hidden="true">
     <view class="page-liquid-bg__static" />
-    <view class="page-liquid-bg__fluid" />
-    <view class="page-liquid-bg__orb page-liquid-bg__orb--pink" />
-    <view class="page-liquid-bg__orb page-liquid-bg__orb--purple" />
-    <view class="page-liquid-bg__orb page-liquid-bg__orb--white" />
+    <view v-if="!staticOnly" class="page-liquid-bg__fluid" />
+    <view v-if="!staticOnly" class="page-liquid-bg__orb page-liquid-bg__orb--pink" />
+    <view v-if="!staticOnly" class="page-liquid-bg__orb page-liquid-bg__orb--purple" />
+    <view v-if="!staticOnly" class="page-liquid-bg__orb page-liquid-bg__orb--white" />
   </view>
 </template>
 
 <script setup>
 /** 子页液态玻璃背景（真实节点，避免 Skyline 伪元素 / scroll-view 白底遮挡） */
+defineProps({
+  staticOnly: {
+    type: Boolean,
+    default: false
+  }
+})
 </script>
 
 <style lang="scss" scoped>

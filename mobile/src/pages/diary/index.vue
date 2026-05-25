@@ -1,13 +1,13 @@
 <template>
   <view class="safe-page diary-page app-nav-page">
-    <PageLiquidBg />
+    <PageLiquidBg static-only />
     <scroll-view class="content-scroll" scroll-y enable-flex :show-scrollbar="false">
       <view class="page-inner">
         <PageNavBar title="心动日记" :show-back="false">
-          <template #action>
-            <picker mode="date" :value="selectedDate" @change="onPickDate">
-              <view class="nav-calendar app-nav__action tap-scale">
-                <text class="cal-icon">▦</text>
+          <template #titleAction>
+            <picker mode="date" :value="selectedDate" :end="todayYmd" @change="onPickDate">
+              <view class="nav-calendar tap-scale">
+                <image class="nav-calendar-icon" :src="calendarIcon" mode="aspectFit" />
               </view>
             </picker>
           </template>
@@ -15,10 +15,11 @@
 
         <DiaryDateStrip
           :selected="selectedDate"
+          :diary-marks="recentDiaryMarks"
           @select="onSelectDate"
         />
 
-        <view v-if="diary.loading" class="glass-card diary-loading">
+        <view v-if="showDiaryLoading" class="glass-card diary-loading">
         <text>正在加载心动日记…</text>
       </view>
 
@@ -112,8 +113,10 @@
           title="心动记录"
           :items="historyItems"
           layout="full"
+          :show-card-actions="true"
           empty-text="更多回忆会出现在这里"
           @item-tap="openTimelineItem"
+          @card-action="onTimelineCardAction"
           @media-tap="onHistoryMediaTap"
         />
       </view>
@@ -126,6 +129,28 @@
       <text class="diary-fab-icon">✎</text>
     </view>
     <LoveTabBar active="diary" @create="openPublish" />
+
+    <view v-if="timelineMenuVisible" class="timeline-menu-root" @tap="closeTimelineMenu">
+      <view class="timeline-menu-mask" />
+      <view class="timeline-menu-sheet" @tap.stop>
+        <view class="timeline-menu-handle" />
+        <text class="timeline-menu-title">这篇心动日记</text>
+        <text class="timeline-menu-subtitle">{{ activeTimelineItem?.title || '选择操作' }}</text>
+
+        <view class="timeline-menu-list">
+          <button class="timeline-menu-item tap-scale" @tap="onTimelineMenuEdit">
+            <text class="timeline-menu-item__icon">✎</text>
+            <text class="timeline-menu-item__label">编辑日记</text>
+          </button>
+          <button class="timeline-menu-item timeline-menu-item--danger tap-scale" @tap="onTimelineMenuDelete">
+            <text class="timeline-menu-item__icon">⌫</text>
+            <text class="timeline-menu-item__label">删除日记</text>
+          </button>
+        </view>
+
+        <button class="timeline-menu-cancel tap-scale" @tap="closeTimelineMenu">取消</button>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -140,7 +165,8 @@ import DiaryTimelineSection from '../../components/DiaryTimelineSection.vue'
 import LoveTabBar from '../../components/LoveTabBar.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDiaryStore } from '../../stores/diary'
-import { formatDiaryTime, formatVideoDuration } from '../../utils/diary-date'
+import { formatDiaryTime, formatVideoDuration, formatYmd } from '../../utils/diary-date'
+import { calendarIcon } from '../../utils/icons'
 import { weatherIconFor } from '../../utils/diary-meta-options'
 import { resolveMediaUrl } from '../../services/request'
 import { resolveVideoPoster } from '../../utils/media-display'
@@ -148,8 +174,11 @@ import { mapHomeTimelineItem } from '../../utils/home-timeline-display'
 import { markMediaPreviewOpening } from '../../utils/media-preview'
 
 const diary = useDiaryStore()
-const { selectedDate } = storeToRefs(diary)
+const { selectedDate, recentDiaryMarks, resolvedDiaryMarks } = storeToRefs(diary)
 const expanded = ref(false)
+const todayYmd = formatYmd(new Date())
+const timelineMenuVisible = ref(false)
+const activeTimelineItem = ref(null)
 let pendingDate = ''
 let pendingDiaryId = ''
 
@@ -159,6 +188,9 @@ onLoad((options) => {
 })
 
 const hasDiary = computed(() => Boolean(diary.currentDiary?.id))
+const showDiaryLoading = computed(
+  () => diary.loading && !resolvedDiaryMarks.value?.[selectedDate.value]
+)
 
 const displayImages = computed(() =>
   diary.currentMedia
@@ -209,7 +241,7 @@ function videoCover(video) {
 
 function onPickDate(e) {
   const date = e.detail.value
-  if (date) diary.selectDate(date)
+  if (date) diary.selectDate(date > todayYmd ? todayYmd : date)
 }
 
 function onSelectDate(ymd) {
@@ -294,6 +326,60 @@ function openTimelineItem(item) {
   }
 }
 
+function editTimelineItem(item) {
+  if (!item?.id) return
+  const date = item.eventDate || selectedDate.value || ''
+  let url = `/pages/diary/edit?id=${encodeURIComponent(item.id)}`
+  if (date) url += `&date=${encodeURIComponent(date)}`
+  uni.navigateTo({ url })
+}
+
+async function deleteTimelineItem(item) {
+  if (!item?.id) return
+  const res = await new Promise((resolve) => {
+    uni.showModal({
+      title: '删除日记',
+      content: '删除后无法恢复，确定要删除这篇心动日记吗？',
+      confirmColor: '#f05b99',
+      success: resolve,
+      fail: () => resolve({ confirm: false })
+    })
+  })
+  if (!res?.confirm) return
+  try {
+    expanded.value = false
+    await diary.deleteDiary(item.id, { date: item.eventDate || item.date })
+    uni.showToast({ title: '已删除', icon: 'success' })
+  } catch {
+    uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' })
+  }
+}
+
+function closeTimelineMenu() {
+  timelineMenuVisible.value = false
+  activeTimelineItem.value = null
+}
+
+function onTimelineCardAction(item) {
+  if (!item?.id) return
+  activeTimelineItem.value = item
+  timelineMenuVisible.value = true
+}
+
+function onTimelineMenuEdit() {
+  const item = activeTimelineItem.value
+  closeTimelineMenu()
+  if (!item) return
+  editTimelineItem(item)
+}
+
+function onTimelineMenuDelete() {
+  const item = activeTimelineItem.value
+  closeTimelineMenu()
+  if (!item) return
+  void deleteTimelineItem(item)
+}
+
 onShow(async () => {
   if (pendingDiaryId) {
     const id = pendingDiaryId
@@ -320,24 +406,26 @@ onShow(async () => {
 @use '../../styles/theme.scss' as *;
 
 .nav-calendar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 40rpx;
+  height: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1rpx solid rgba(255, 255, 255, 0.7);
 }
 
-.cal-icon {
-  font-size: 32rpx;
-  color: #b99cff;
-  font-weight: 700;
+.nav-calendar-icon {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .glass-card {
   @include apple-liquid-card;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 246, 252, 0.8)),
+    rgba(255, 255, 255, 0.74);
+  box-shadow: 0 10rpx 26rpx rgba(140, 108, 152, 0.06), inset 0 1rpx 0 rgba(255, 255, 255, 0.76);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .diary-loading,
@@ -464,10 +552,9 @@ onShow(async () => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.78);
   border: 1rpx solid rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 6rpx 14rpx rgba(255, 130, 174, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -500,6 +587,10 @@ onShow(async () => {
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
   @include liquid-secondary-button;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(255, 241, 247, 0.72));
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .meta-icon {
@@ -892,6 +983,113 @@ onShow(async () => {
   color: #fff;
   font-size: 44rpx;
   line-height: 1;
+  font-weight: 700;
+}
+
+.timeline-menu-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+}
+
+.timeline-menu-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(43, 31, 50, 0.22);
+}
+
+.timeline-menu-sheet {
+  position: relative;
+  width: 100%;
+  padding: 18rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 36rpx 36rpx 0 0;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 245, 250, 0.88)),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: 0 -18rpx 48rpx rgba(126, 86, 141, 0.1), inset 0 1rpx 0 rgba(255, 255, 255, 0.72);
+}
+
+.timeline-menu-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 20rpx;
+  border-radius: 999rpx;
+  background: rgba(171, 143, 182, 0.28);
+}
+
+.timeline-menu-title {
+  display: block;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #4a3d52;
+}
+
+.timeline-menu-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  padding: 0 24rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.45;
+  color: #9b8c9f;
+}
+
+.timeline-menu-list {
+  margin-top: 26rpx;
+  padding: 8rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.timeline-menu-item {
+  width: 100%;
+  min-height: 92rpx;
+  padding: 0 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  border-radius: 22rpx;
+  color: #4a3d52;
+  font-size: 28rpx;
+  font-weight: 650;
+}
+
+.timeline-menu-item + .timeline-menu-item {
+  margin-top: 8rpx;
+}
+
+.timeline-menu-item__icon {
+  width: 36rpx;
+  text-align: center;
+  font-size: 30rpx;
+  color: #b99cff;
+}
+
+.timeline-menu-item__label {
+  flex: 1;
+  text-align: left;
+}
+
+.timeline-menu-item--danger {
+  color: #ef5c94;
+  background: rgba(255, 240, 246, 0.78);
+}
+
+.timeline-menu-item--danger .timeline-menu-item__icon {
+  color: #ef5c94;
+}
+
+.timeline-menu-cancel {
+  width: 100%;
+  height: 92rpx;
+  margin-top: 16rpx;
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.82);
+  color: #6f5d73;
+  font-size: 28rpx;
   font-weight: 700;
 }
 

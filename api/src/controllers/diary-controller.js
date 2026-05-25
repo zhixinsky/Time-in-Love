@@ -9,6 +9,13 @@ export async function getDiaryByDateHandler(req, res) {
   res.json({ code: 0, data: data || { diary: null, mediaList: [], author: null, aiSummary: '' } })
 }
 
+export async function getRecentDiaryDetailsHandler(req, res) {
+  const days = Math.min(31, Math.max(1, Number(req.query.days) || 7))
+  const endDate = req.query.endDate
+  const data = await diaryService.fetchRecentDetails(req.spaceId, req.user.id, days, endDate)
+  res.json({ code: 0, data })
+}
+
 export async function getTimelineHandler(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1)
   const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 10))

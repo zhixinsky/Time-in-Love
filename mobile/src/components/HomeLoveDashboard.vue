@@ -2,6 +2,7 @@
   <view class="love-dashboard">
     <view class="timeline-panel moona-glass">
       <DiaryTimelineSection
+        class="timeline-panel-section"
         title="恋爱时间线"
         :items="timelineItems"
         :loading="timelineLoading"
@@ -213,6 +214,13 @@ function toastSoon(label) {
 
 .moona-glass {
   @include moona-glass-card;
+  /* 首页滚动区域内的侧边卡/时间线容器使用轻量假玻璃 */
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(255, 246, 252, 0.64)),
+    rgba(255, 255, 255, 0.68);
+  box-shadow: 0 10rpx 28rpx rgba(164, 103, 164, 0.06), inset 0 1rpx 0 rgba(255, 255, 255, 0.78);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .love-dashboard {
@@ -236,6 +244,12 @@ function toastSoon(label) {
   padding: 0;
   box-sizing: border-box;
   z-index: 1;
+}
+
+.timeline-panel-section {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 .timeline-head {
