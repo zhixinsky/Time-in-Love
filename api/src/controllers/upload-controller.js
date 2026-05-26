@@ -22,7 +22,7 @@ export function uploadVideoHandler(req, res) {
     code: 0,
     data: {
       url,
-      coverUrl: url,
+      coverUrl: '',
       duration
     }
   })

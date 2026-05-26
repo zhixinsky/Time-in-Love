@@ -49,6 +49,7 @@
         <view v-for="(item, index) in mediaPreview" :key="item.key" class="media-cell">
           <image v-if="item.type === 'image'" class="media-img" :src="item.preview" mode="aspectFill" />
           <view v-else class="media-video-ph">
+            <image v-if="item.preview" class="media-img" :src="item.preview" mode="aspectFill" />
             <text class="video-badge">▶</text>
             <text v-if="item.duration" class="video-dur">{{ formatVideoDuration(item.duration) }}</text>
           </view>

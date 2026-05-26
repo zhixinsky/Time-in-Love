@@ -42,7 +42,7 @@ export function useDiaryPublishForm() {
       preview:
         m.type === 'image'
           ? resolveMediaUrl(m.url)
-          : resolveVideoPoster(m.coverUrl, m.url),
+          : resolveVideoPoster(m.coverUrl || m.localCoverUrl, m.url),
       duration: m.duration
     }))
   )
@@ -168,6 +168,7 @@ export function useDiaryPublishForm() {
             type: 'video',
             url: data.url,
             coverUrl: coverUrl || data.coverUrl || '',
+            localCoverUrl: thumb || '',
             duration: data.duration || Math.floor(res.duration || 0)
           })
         } catch {
@@ -200,6 +201,7 @@ export function useDiaryPublishForm() {
       type: m.type,
       url: m.url,
       coverUrl: m.coverUrl,
+      localCoverUrl: '',
       duration: m.duration
     }))
     locationMode.value = form.locationName ? 'map' : 'none'

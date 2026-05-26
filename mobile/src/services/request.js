@@ -208,12 +208,22 @@ export function resolveCloudFileUrl(fileId) {
   })
 }
 
+function guessUploadExt(filePath, fallbackExt) {
+  const raw = String(filePath || '').trim()
+  if (!raw) return fallbackExt
+  const clean = raw.split('?')[0].split('#')[0]
+  const match = clean.match(/\.([a-zA-Z0-9]+)$/)
+  if (!match) return fallbackExt
+  return match[1].toLowerCase()
+}
+
 export function uploadFile(path, filePath, formData = {}) {
   // #ifdef MP-WEIXIN
   if (USE_CLOUD_CONTAINER && typeof wx !== 'undefined' && wx.cloud) {
     ensureCloudContainer()
-    const ext = String(filePath || '').split('.').pop() || (path.includes('video') ? 'mp4' : 'jpg')
-    const folder = path.includes('video') ? 'uploads/videos' : 'avatars'
+    const isVideo = path.includes('video')
+    const ext = guessUploadExt(filePath, isVideo ? 'mp4' : 'jpg')
+    const folder = isVideo ? 'uploads/videos' : 'uploads/images'
     const cloudPath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
     return new Promise((resolve, reject) => {
       wx.cloud.uploadFile({
@@ -222,7 +232,7 @@ export function uploadFile(path, filePath, formData = {}) {
         success(res) {
           resolve({
             url: res.fileID,
-            coverUrl: res.fileID,
+            coverUrl: isVideo ? '' : res.fileID,
             duration: Number(formData.duration || 0)
           })
         },

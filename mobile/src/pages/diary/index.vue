@@ -91,23 +91,6 @@
         </view>
       </view>
 
-      <view v-if="hasDiary" class="glass-card ai-card">
-        <view class="ai-copy">
-          <text class="ai-label">AI星芽的小记</text>
-          <text v-if="displayAi" class="ai-text">{{ displayAi }}</text>
-          <text v-else class="ai-text ai-text--hint">让星芽帮你写下今天的温柔小记吧～</text>
-          <button
-            v-if="!displayAi || canRegenerateAi"
-            class="ai-gen-btn tap-scale"
-            :disabled="diary.aiGenerating"
-            @tap="onGenerateAi"
-          >
-            {{ diary.aiGenerating ? '生成中…' : displayAi ? '重新生成' : '生成 AI 小记' }}
-          </button>
-        </view>
-        <view class="ai-sprout">✿</view>
-      </view>
-
       <view class="history-block">
         <DiaryTimelineSection
           title="心动记录"
@@ -221,10 +204,6 @@ const metaItems = computed(() => {
 
 const showExpandToggle = computed(() => (diary.currentDiary?.content || '').length > 96)
 
-const displayAi = computed(() => diary.aiSummary || diary.currentDiary?.aiSummary || '')
-
-const canRegenerateAi = computed(() => Boolean(displayAi.value))
-
 const authorLabel = computed(() => {
   const name = diary.currentAuthor?.nickname
   if (name === '我' || name === 'Ta') return name
@@ -292,17 +271,6 @@ function playHistoryVideo(media) {
   // #ifndef MP-WEIXIN
   uni.showToast({ title: '请在微信小程序中播放', icon: 'none' })
   // #endif
-}
-
-async function onGenerateAi() {
-  const id = diary.currentDiary?.id
-  if (!id) return
-  try {
-    await diary.generateAiSummary(id)
-    uni.showToast({ title: '小记已生成', icon: 'success' })
-  } catch {
-    uni.showToast({ title: '生成失败，请稍后重试', icon: 'none' })
-  }
 }
 
 function openPublish() {
@@ -646,52 +614,6 @@ onShow(async () => {
   margin-top: 4rpx;
 }
 
-.ai-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
-  background: rgba(255, 255, 255, 0.52);
-}
-
-.ai-copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.ai-label {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 800;
-  color: #4a3d52;
-  margin-bottom: 10rpx;
-}
-
-.ai-text {
-  display: block;
-  font-size: 26rpx;
-  line-height: 1.65;
-  color: #7b6c85;
-}
-
-.ai-text--hint {
-  color: #9b8c9f;
-}
-
-.ai-gen-btn {
-  margin-top: 16rpx;
-  padding: 10rpx 24rpx;
-  font-size: 24rpx;
-  @include liquid-secondary-button;
-}
-
-.ai-sprout {
-  font-size: 40rpx;
-  color: #b99cff;
-  margin-left: 12rpx;
-}
-
 .history-block {
   margin-bottom: 24rpx;
 }
@@ -989,7 +911,7 @@ onShow(async () => {
 .timeline-menu-root {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 10020;
   display: flex;
   align-items: flex-end;
 }
@@ -1003,7 +925,7 @@ onShow(async () => {
 .timeline-menu-sheet {
   position: relative;
   width: 100%;
-  padding: 18rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  padding: 18rpx 24rpx calc(140rpx + env(safe-area-inset-bottom));
   border-radius: 36rpx 36rpx 0 0;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 245, 250, 0.88)),
