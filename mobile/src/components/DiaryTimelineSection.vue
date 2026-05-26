@@ -24,7 +24,7 @@
         </view>
         <view v-else class="timeline-list">
           <view
-            v-for="(item, index) in items"
+            v-for="item in items"
             :key="item.id"
             class="timeline-item"
           >
@@ -33,10 +33,7 @@
                 <text class="date-main">{{ item.date }}</text>
                 <text class="date-week">{{ item.week }}</text>
               </view>
-              <view :class="['timeline-dot', `timeline-dot--${item.type}`]">
-                <text class="dot-icon">{{ item.type === 'date' ? '♥' : '✎' }}</text>
-              </view>
-              <view v-if="index !== items.length - 1" class="timeline-line" />
+              <view class="timeline-line" />
             </view>
 
             <view
@@ -145,7 +142,7 @@
         </view>
         <view v-else class="timeline-list">
           <view
-            v-for="(item, index) in items"
+            v-for="item in items"
             :key="item.id"
             class="timeline-item"
           >
@@ -154,10 +151,7 @@
                 <text class="date-main">{{ item.date }}</text>
                 <text class="date-week">{{ item.week }}</text>
               </view>
-              <view :class="['timeline-dot', `timeline-dot--${item.type}`]">
-                <text class="dot-icon">{{ item.type === 'date' ? '♥' : '✎' }}</text>
-              </view>
-              <view v-if="index !== items.length - 1" class="timeline-line" />
+              <view class="timeline-line" />
             </view>
 
             <view
@@ -400,12 +394,12 @@ function mediaDisplaySrc(media) {
 
 .timeline-section--panel .timeline-item {
   gap: 10rpx;
-  margin-bottom: 6rpx;
+  margin-bottom: 12rpx;
 }
 
 .timeline-section--full .timeline-item {
   gap: 14rpx;
-  margin-bottom: 12rpx;
+  margin-bottom: 22rpx;
 }
 
 .timeline-rail {
@@ -419,10 +413,12 @@ function mediaDisplaySrc(media) {
 
 .timeline-section--panel .timeline-rail {
   width: 58rpx;
+  --timeline-line-top: 66rpx;
 }
 
 .timeline-section--full .timeline-rail {
   width: 64rpx;
+  --timeline-line-top: 72rpx;
 }
 
 .timeline-date {
@@ -460,54 +456,13 @@ function mediaDisplaySrc(media) {
   font-size: 18rpx;
 }
 
-.timeline-dot {
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 12rpx rgba(255, 102, 172, 0.18);
-}
-
-.timeline-section--panel .timeline-dot {
-  width: 28rpx;
-  height: 28rpx;
-}
-
-.timeline-section--full .timeline-dot {
-  width: 30rpx;
-  height: 30rpx;
-}
-
-.dot-icon {
-  color: #fff;
-  line-height: 1;
-}
-
-.timeline-section--panel .dot-icon {
-  font-size: 16rpx;
-}
-
-.timeline-section--full .dot-icon {
-  font-size: 17rpx;
-}
-
-.timeline-dot--date {
-  background: linear-gradient(135deg, #ff77ad, #f2609c);
-}
-
-.timeline-dot--daily {
-  background: linear-gradient(135deg, #a98cff, #7f61ee);
-}
-
 .timeline-line {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  top: var(--timeline-line-top);
+  bottom: 0;
+  transform: translateX(-50%);
   width: 2rpx;
-  min-height: 56rpx;
-  margin-top: 10rpx;
-  margin-bottom: 12rpx;
   background: linear-gradient(
     180deg,
     rgba(255, 128, 186, 0.42) 0%,
@@ -520,6 +475,7 @@ function mediaDisplaySrc(media) {
   flex: 1;
   min-width: 0;
   @include moona-memory-card;
+  margin-bottom: 0;
   /* 时间线列表滚动中避免多张卡片同时做 backdrop-filter 采样 */
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 247, 252, 0.78)),

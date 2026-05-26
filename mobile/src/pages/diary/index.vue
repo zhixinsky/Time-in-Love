@@ -925,7 +925,7 @@ onShow(async () => {
 .timeline-menu-sheet {
   position: relative;
   width: 100%;
-  padding: 18rpx 24rpx calc(140rpx + env(safe-area-inset-bottom));
+  padding: 18rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
   border-radius: 36rpx 36rpx 0 0;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 245, 250, 0.88)),

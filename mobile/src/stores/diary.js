@@ -40,14 +40,7 @@ export const useDiaryStore = defineStore('diary', () => {
       return
     }
     if (isRecentDate(ymd)) {
-      await warmRecentDays()
-      const warmedDetail = getCachedDiaryDetail(ymd)
-      if (warmedDetail) {
-        applyDiaryDetail(warmedDetail, { syncSelectedDate: false })
-        lastFetchedDate.value = ymd
-        loading.value = false
-        return
-      }
+      void warmRecentDays({ skipAuth: true })
     }
     await fetchDiaryByDate(ymd)
   }
@@ -73,10 +66,15 @@ export const useDiaryStore = defineStore('diary', () => {
   function cacheDiaryDetail(date, data) {
     const ymd = normalizeYmd(date || data?.diary?.diaryDate)
     if (!ymd) return
-    diaryDetailCache.set(ymd, normalizeDiaryDetail(data))
+    const detail = normalizeDiaryDetail(data)
+    diaryDetailCache.set(ymd, detail)
     resolvedDiaryMarks.value = {
       ...resolvedDiaryMarks.value,
       [ymd]: true
+    }
+    recentDiaryMarks.value = {
+      ...recentDiaryMarks.value,
+      [ymd]: Boolean(detail.diary)
     }
   }
 
@@ -95,6 +93,20 @@ export const useDiaryStore = defineStore('diary', () => {
       ...resolvedDiaryMarks.value,
       [ymd]: true
     }
+    recentDiaryMarks.value = {
+      ...recentDiaryMarks.value,
+      [ymd]: false
+    }
+  }
+
+  function syncRecentMarksFromTimeline(list = []) {
+    const nextMarks = { ...recentDiaryMarks.value }
+    for (const item of list) {
+      const ymd = normalizeYmd(item?.date)
+      if (!ymd || !isRecentDate(ymd)) continue
+      nextMarks[ymd] = true
+    }
+    recentDiaryMarks.value = nextMarks
   }
 
   function applyRecentDetails(items = []) {
@@ -265,6 +277,7 @@ export const useDiaryStore = defineStore('diary', () => {
         const data = await diaryApi.getTimeline(page, pageSize)
         const list = Array.isArray(data) ? data : data?.list || data?.items || []
         timelineList.value = list
+        syncRecentMarksFromTimeline(list)
         return list
       } catch (e) {
         console.warn('[diary] fetchTimeline failed', e)

@@ -248,7 +248,7 @@ function setVisibility(value) {
 .textarea-shell {
   position: relative;
   min-height: 222rpx;
-  padding: 26rpx 24rpx 22rpx;
+  padding: 18rpx 18rpx 14rpx;
   box-sizing: border-box;
   @include apple-liquid-input;
 }
@@ -258,7 +258,7 @@ function setVisibility(value) {
   z-index: 1;
   width: 100%;
   min-height: 176rpx;
-  padding: 0;
+  padding: 10rpx 92rpx 46rpx 12rpx;
   box-sizing: border-box;
   color: #33313a;
   font-size: 29rpx;
@@ -272,15 +272,18 @@ function setVisibility(value) {
   bottom: 36rpx;
   font-size: 52rpx;
   opacity: 0.25;
+  pointer-events: none;
 }
 
 .text-card-count {
   position: absolute;
-  right: 20rpx;
-  bottom: 14rpx;
+  right: 24rpx;
+  bottom: 16rpx;
+  z-index: 2;
   color: #6f6b73;
   font-size: 22rpx;
   font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 
 .batch-btn {
