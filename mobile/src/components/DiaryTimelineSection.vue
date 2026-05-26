@@ -74,25 +74,8 @@
                         class="memory-image memory-image--scroll tap-scale"
                         @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                       >
-                        <video
-                          v-if="media.type === 'video'"
-                          class="memory-video-cover"
-                          :src="media.url"
-                          :poster="mediaDisplaySrc(media)"
-                          :controls="true"
-                          :show-play-btn="false"
-                          :show-center-play-btn="false"
-                          :show-progress="false"
-                          :show-bottom-progress="false"
-                          :show-fullscreen-btn="false"
-                          :enable-progress-gesture="false"
-                          :enable-play-gesture="false"
-                          :muted="true"
-                          object-fit="cover"
-                          @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
-                        />
                         <image
-                          v-else-if="mediaDisplaySrc(media)"
+                          v-if="mediaDisplaySrc(media)"
                           class="memory-image-photo"
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
@@ -118,25 +101,8 @@
                       class="memory-image tap-scale"
                       @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                     >
-                      <video
-                        v-if="media.type === 'video'"
-                        class="memory-video-cover"
-                        :src="media.url"
-                        :poster="mediaDisplaySrc(media)"
-                        :controls="true"
-                        :show-play-btn="false"
-                        :show-center-play-btn="false"
-                        :show-progress="false"
-                        :show-bottom-progress="false"
-                        :show-fullscreen-btn="false"
-                        :enable-progress-gesture="false"
-                        :enable-play-gesture="false"
-                        :muted="true"
-                        object-fit="cover"
-                        @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
-                      />
                       <image
-                        v-else-if="mediaDisplaySrc(media)"
+                        v-if="mediaDisplaySrc(media)"
                         class="memory-image-photo"
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
@@ -226,25 +192,8 @@
                         class="memory-image memory-image--scroll tap-scale"
                         @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                       >
-                        <video
-                          v-if="media.type === 'video'"
-                          class="memory-video-cover"
-                          :src="media.url"
-                          :poster="mediaDisplaySrc(media)"
-                          :controls="true"
-                          :show-play-btn="false"
-                          :show-center-play-btn="false"
-                          :show-progress="false"
-                          :show-bottom-progress="false"
-                          :show-fullscreen-btn="false"
-                          :enable-progress-gesture="false"
-                          :enable-play-gesture="false"
-                          :muted="true"
-                          object-fit="cover"
-                          @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
-                        />
                         <image
-                          v-else-if="mediaDisplaySrc(media)"
+                          v-if="mediaDisplaySrc(media)"
                           class="memory-image-photo"
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
@@ -270,25 +219,8 @@
                       class="memory-image tap-scale"
                       @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                     >
-                      <video
-                        v-if="media.type === 'video'"
-                        class="memory-video-cover"
-                        :src="media.url"
-                        :poster="mediaDisplaySrc(media)"
-                        :controls="true"
-                        :show-play-btn="false"
-                        :show-center-play-btn="false"
-                        :show-progress="false"
-                        :show-bottom-progress="false"
-                        :show-fullscreen-btn="false"
-                        :enable-progress-gesture="false"
-                        :enable-play-gesture="false"
-                        :muted="true"
-                        object-fit="cover"
-                        @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
-                      />
                       <image
-                        v-else-if="mediaDisplaySrc(media)"
+                        v-if="mediaDisplaySrc(media)"
                         class="memory-image-photo"
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
@@ -689,11 +621,6 @@ function mediaDisplaySrc(media) {
   height: 100%;
 }
 
-.memory-video-cover {
-  width: 100%;
-  height: 100%;
-}
-
 .timeline-section--panel .memory-media-host--scroll {
   width: 100%;
   height: 92rpx;
@@ -759,18 +686,25 @@ function mediaDisplaySrc(media) {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36rpx;
-  height: 36rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  color: #fff;
-  font-size: 18rpx;
-  background: rgba(0, 0, 0, 0.35);
-  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  color: #f29abc;
+  font-size: 17rpx;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6rpx 14rpx rgba(130, 88, 145, 0.1);
   transform: translate(-50%, -50%);
+}
+
+.video-badge text {
+  margin-left: 2rpx;
+  line-height: 1;
 }
 
 .video-time {

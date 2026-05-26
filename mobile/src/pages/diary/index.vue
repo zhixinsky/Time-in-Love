@@ -58,25 +58,13 @@
               class="media-cell media-cell--video tap-scale"
               @tap="playVideo(video)"
             >
-              <view class="media-video-shell">
-                <view class="media-video-ph" />
-                <video
-                  class="media-video-cover"
-                  :src="resolveMediaUrl(video.url)"
-                  :poster="videoCover(video)"
-                  :controls="true"
-                  :show-play-btn="false"
-                  :show-center-play-btn="false"
-                  :show-progress="false"
-                  :show-bottom-progress="false"
-                  :show-fullscreen-btn="false"
-                  :enable-progress-gesture="false"
-                  :enable-play-gesture="false"
-                  :muted="true"
-                  object-fit="cover"
-                  @tap.stop="playVideo(video)"
-                />
-              </view>
+              <image
+                v-if="videoCover(video)"
+                class="media-img"
+                :src="videoCover(video)"
+                mode="aspectFill"
+              />
+              <view v-else class="media-video-ph" />
               <view class="video-play"><text>▶</text></view>
               <text v-if="video.duration" class="video-time">
                 {{ formatVideoDuration(video.duration) }}
@@ -524,34 +512,29 @@ onShow(async () => {
   background: linear-gradient(145deg, rgba(255, 214, 232, 0.68), rgba(253, 247, 255, 0.62));
 }
 
-.media-video-shell {
-  position: absolute;
-  inset: 0;
-}
-
-.media-video-cover {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
 .video-play {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  z-index: 3;
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1rpx solid rgba(255, 255, 255, 0.68);
-  box-shadow: 0 6rpx 14rpx rgba(255, 130, 174, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8rpx 18rpx rgba(255, 130, 174, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22rpx;
-  color: #ff82ae;
+  color: #f29abc;
+}
+
+.video-play text {
+  margin-left: 3rpx;
+  font-size: 20rpx;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .video-time {
