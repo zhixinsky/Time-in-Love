@@ -74,8 +74,25 @@
                         class="memory-image memory-image--scroll tap-scale"
                         @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                       >
+                        <video
+                          v-if="media.type === 'video'"
+                          class="memory-video-cover"
+                          :src="media.url"
+                          :poster="mediaDisplaySrc(media)"
+                          :controls="true"
+                          :show-play-btn="false"
+                          :show-center-play-btn="false"
+                          :show-progress="false"
+                          :show-bottom-progress="false"
+                          :show-fullscreen-btn="false"
+                          :enable-progress-gesture="false"
+                          :enable-play-gesture="false"
+                          :muted="true"
+                          object-fit="cover"
+                          @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
+                        />
                         <image
-                          v-if="mediaDisplaySrc(media)"
+                          v-else-if="mediaDisplaySrc(media)"
                           class="memory-image-photo"
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
@@ -101,8 +118,25 @@
                       class="memory-image tap-scale"
                       @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                     >
+                      <video
+                        v-if="media.type === 'video'"
+                        class="memory-video-cover"
+                        :src="media.url"
+                        :poster="mediaDisplaySrc(media)"
+                        :controls="true"
+                        :show-play-btn="false"
+                        :show-center-play-btn="false"
+                        :show-progress="false"
+                        :show-bottom-progress="false"
+                        :show-fullscreen-btn="false"
+                        :enable-progress-gesture="false"
+                        :enable-play-gesture="false"
+                        :muted="true"
+                        object-fit="cover"
+                        @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
+                      />
                       <image
-                        v-if="mediaDisplaySrc(media)"
+                        v-else-if="mediaDisplaySrc(media)"
                         class="memory-image-photo"
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
@@ -192,8 +226,25 @@
                         class="memory-image memory-image--scroll tap-scale"
                         @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                       >
+                        <video
+                          v-if="media.type === 'video'"
+                          class="memory-video-cover"
+                          :src="media.url"
+                          :poster="mediaDisplaySrc(media)"
+                          :controls="true"
+                          :show-play-btn="false"
+                          :show-center-play-btn="false"
+                          :show-progress="false"
+                          :show-bottom-progress="false"
+                          :show-fullscreen-btn="false"
+                          :enable-progress-gesture="false"
+                          :enable-play-gesture="false"
+                          :muted="true"
+                          object-fit="cover"
+                          @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
+                        />
                         <image
-                          v-if="mediaDisplaySrc(media)"
+                          v-else-if="mediaDisplaySrc(media)"
                           class="memory-image-photo"
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
@@ -219,8 +270,25 @@
                       class="memory-image tap-scale"
                       @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
                     >
+                      <video
+                        v-if="media.type === 'video'"
+                        class="memory-video-cover"
+                        :src="media.url"
+                        :poster="mediaDisplaySrc(media)"
+                        :controls="true"
+                        :show-play-btn="false"
+                        :show-center-play-btn="false"
+                        :show-progress="false"
+                        :show-bottom-progress="false"
+                        :show-fullscreen-btn="false"
+                        :enable-progress-gesture="false"
+                        :enable-play-gesture="false"
+                        :muted="true"
+                        object-fit="cover"
+                        @tap.stop="$emit('media-tap', { item, index: mediaIndex })"
+                      />
                       <image
-                        v-if="mediaDisplaySrc(media)"
+                        v-else-if="mediaDisplaySrc(media)"
                         class="memory-image-photo"
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
@@ -617,6 +685,11 @@ function mediaDisplaySrc(media) {
 }
 
 .memory-image-photo {
+  width: 100%;
+  height: 100%;
+}
+
+.memory-video-cover {
   width: 100%;
   height: 100%;
 }
