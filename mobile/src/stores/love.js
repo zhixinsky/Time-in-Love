@@ -51,6 +51,8 @@ export const useLoveStore = defineStore('love', () => {
     if ([99, 100, 365, 520, 999, 1314].includes(loveDays.value)) return `${loveDays.value}天纪念日`
     return ''
   })
+  let dashboardPromise = null
+  let dashboardPromiseKey = ''
 
   function setLoveStartDate(date) {
     space.value.loveStartDate = date
@@ -63,22 +65,33 @@ export const useLoveStore = defineStore('love', () => {
   /** 从云托管同步首页数据（失败时保持本地 mock） */
   async function loadDashboard(spaceId = 'current', options = {}) {
     const { skipAuth = false } = options
-    try {
-      const auth = useAuthStore()
-      if (!skipAuth) await auth.ensureLogin()
-      const data = await fetchSpaceDashboard(spaceId)
-      if (!data) return false
-      space.value = { ...space.value, ...data.space }
-      auth.syncSpace(space.value)
-      anniversaries.value = data.anniversaries || anniversaries.value
-      moods.value = data.moods || moods.value
-      bills.value = data.bills || bills.value
-      if (data.latestDiary) diary.value = data.latestDiary
-      return true
-    } catch (e) {
-      console.warn('[love] loadDashboard failed, using mock', e)
-      return false
-    }
+    const requestKey = `${spaceId}:${skipAuth ? 'skip-auth' : 'auth'}`
+    if (dashboardPromise && dashboardPromiseKey === requestKey) return dashboardPromise
+
+    dashboardPromiseKey = requestKey
+    dashboardPromise = (async () => {
+      try {
+        const auth = useAuthStore()
+        if (!skipAuth) await auth.ensureLogin()
+        const data = await fetchSpaceDashboard(spaceId)
+        if (!data) return false
+        space.value = { ...space.value, ...data.space }
+        auth.syncSpace(space.value)
+        anniversaries.value = data.anniversaries || anniversaries.value
+        moods.value = data.moods || moods.value
+        bills.value = data.bills || bills.value
+        if (data.latestDiary) diary.value = data.latestDiary
+        return true
+      } catch (e) {
+        console.warn('[love] loadDashboard failed, using mock', e)
+        return false
+      } finally {
+        dashboardPromise = null
+        dashboardPromiseKey = ''
+      }
+    })()
+
+    return dashboardPromise
   }
 
   async function saveSpace(payload) {

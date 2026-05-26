@@ -64,8 +64,19 @@
                 :src="videoCover(video)"
                 mode="aspectFill"
               />
+              <video
+                v-else-if="resolveMediaUrl(video.url)"
+                class="media-video"
+                :src="resolveMediaUrl(video.url)"
+                object-fit="cover"
+                :controls="false"
+                :show-center-play-btn="false"
+                :show-play-btn="false"
+                :enable-progress-gesture="false"
+                muted
+              />
               <view v-else class="media-video-ph" />
-              <view class="video-play"><text>▶</text></view>
+              <view class="video-play"><view class="video-play-triangle" /></view>
               <text v-if="video.duration" class="video-time">
                 {{ formatVideoDuration(video.duration) }}
               </text>
@@ -501,9 +512,15 @@ onShow(async () => {
   background: rgba(255, 220, 235, 0.35);
 }
 
-.media-img {
+.media-img,
+.media-video {
   width: 100%;
   height: 100%;
+}
+
+.media-video {
+  display: block;
+  pointer-events: none;
 }
 
 .media-cell--video .media-video-ph {
@@ -518,23 +535,30 @@ onShow(async () => {
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 3;
-  width: 56rpx;
-  height: 56rpx;
+  width: 58rpx;
+  height: 58rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8rpx 18rpx rgba(255, 130, 174, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 252, 0.86)),
+    rgba(255, 255, 255, 0.88);
+  border: 1rpx solid rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 10rpx 22rpx rgba(130, 88, 145, 0.13),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16rpx);
+  -webkit-backdrop-filter: blur(16rpx);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f29abc;
 }
 
-.video-play text {
-  margin-left: 3rpx;
-  font-size: 20rpx;
-  line-height: 1;
-  font-weight: 700;
+.video-play-triangle {
+  width: 0;
+  height: 0;
+  margin-left: 4rpx;
+  border-top: 11rpx solid transparent;
+  border-bottom: 11rpx solid transparent;
+  border-left: 17rpx solid #f28bb3;
 }
 
 .video-time {

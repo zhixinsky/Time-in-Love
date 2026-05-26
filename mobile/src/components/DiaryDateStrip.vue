@@ -14,7 +14,7 @@
           <text class="date-day" :style="dayStyle(item.ymd)">{{ item.day }}</text>
         </view>
         <view
-          v-if="isSelected(item.ymd) || hasDiary(item.ymd)"
+          v-if="hasDiary(item.ymd)"
           :class="['date-bottom-dot', { 'date-bottom-dot--active': isSelected(item.ymd) }]"
         />
       </view>

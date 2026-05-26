@@ -144,40 +144,67 @@ export function useDiaryPublishForm() {
   }
 
   function pickVideo() {
+    // #ifdef MP-WEIXIN
+    if (typeof wx !== 'undefined' && wx.chooseMedia) {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['video'],
+        sourceType: ['album', 'camera'],
+        maxDuration: 60,
+        camera: 'back',
+        success: async (res) => {
+          const file = res?.tempFiles?.[0]
+          if (!file?.tempFilePath) return
+          await uploadPickedVideo({
+            tempFilePath: file.tempFilePath,
+            duration: file.duration,
+            thumbTempFilePath: file.thumbTempFilePath
+          })
+        }
+      })
+      return
+    }
+    // #endif
+
     uni.chooseVideo({
       maxDuration: 60,
       compressed: true,
       success: async (res) => {
-        await auth.ensureLogin()
-        try {
-          uni.showLoading({ title: '上传中' })
-          const data = await uploadFile('/upload/video', res.tempFilePath, {
-            duration: String(Math.floor(res.duration || 0))
-          })
-          let coverUrl = ''
-          const thumb = res.thumbTempFilePath || res.thumbTempFile
-          if (thumb) {
-            try {
-              const coverData = await uploadFile('/upload/image', thumb)
-              coverUrl = coverData.url || ''
-            } catch {
-              /* 封面失败仍保存视频 */
-            }
-          }
-          form.mediaList.push({
-            type: 'video',
-            url: data.url,
-            coverUrl: coverUrl || data.coverUrl || '',
-            localCoverUrl: thumb || '',
-            duration: data.duration || Math.floor(res.duration || 0)
-          })
-        } catch {
-          uni.showToast({ title: '视频上传失败', icon: 'none' })
-        } finally {
-          uni.hideLoading()
-        }
+        await uploadPickedVideo(res)
       }
     })
+  }
+
+  async function uploadPickedVideo(video) {
+    await auth.ensureLogin()
+    try {
+      uni.showLoading({ title: '上传中' })
+      const duration = Math.floor(video.duration || 0)
+      const data = await uploadFile('/upload/video', video.tempFilePath, {
+        duration: String(duration)
+      })
+      let coverUrl = ''
+      const thumb = video.thumbTempFilePath || video.thumbTempFile
+      if (thumb) {
+        try {
+          const coverData = await uploadFile('/upload/image', thumb)
+          coverUrl = coverData.url || ''
+        } catch {
+          /* 封面失败仍保存视频，列表里用视频首帧兜底 */
+        }
+      }
+      form.mediaList.push({
+        type: 'video',
+        url: data.url,
+        coverUrl: coverUrl || data.coverUrl || '',
+        localCoverUrl: thumb || '',
+        duration: data.duration || duration
+      })
+    } catch {
+      uni.showToast({ title: '视频上传失败', icon: 'none' })
+    } finally {
+      uni.hideLoading()
+    }
   }
 
   function removeMedia(index) {

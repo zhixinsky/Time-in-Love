@@ -80,9 +80,20 @@
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
                         />
+                        <video
+                          v-else-if="media.type === 'video' && media.url"
+                          class="memory-image-video"
+                          :src="media.url"
+                          object-fit="cover"
+                          :controls="false"
+                          :show-center-play-btn="false"
+                          :show-play-btn="false"
+                          :enable-progress-gesture="false"
+                          muted
+                        />
                         <view v-else class="memory-video-ph" />
                         <view v-if="media.type === 'video'" class="video-badge">
-                          <text>▶</text>
+                          <view class="video-play-triangle" />
                         </view>
                         <text
                           v-if="media.type === 'video' && media.duration"
@@ -107,9 +118,20 @@
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
                       />
+                      <video
+                        v-else-if="media.type === 'video' && media.url"
+                        class="memory-image-video"
+                        :src="media.url"
+                        object-fit="cover"
+                        :controls="false"
+                        :show-center-play-btn="false"
+                        :show-play-btn="false"
+                        :enable-progress-gesture="false"
+                        muted
+                      />
                       <view v-else class="memory-video-ph" />
                       <view v-if="media.type === 'video'" class="video-badge">
-                        <text>▶</text>
+                        <view class="video-play-triangle" />
                       </view>
                       <text
                         v-if="media.type === 'video' && media.duration"
@@ -198,9 +220,20 @@
                           :src="mediaDisplaySrc(media)"
                           mode="aspectFill"
                         />
+                        <video
+                          v-else-if="media.type === 'video' && media.url"
+                          class="memory-image-video"
+                          :src="media.url"
+                          object-fit="cover"
+                          :controls="false"
+                          :show-center-play-btn="false"
+                          :show-play-btn="false"
+                          :enable-progress-gesture="false"
+                          muted
+                        />
                         <view v-else class="memory-video-ph" />
                         <view v-if="media.type === 'video'" class="video-badge">
-                          <text>▶</text>
+                          <view class="video-play-triangle" />
                         </view>
                         <text
                           v-if="media.type === 'video' && media.duration"
@@ -225,9 +258,20 @@
                         :src="mediaDisplaySrc(media)"
                         mode="aspectFill"
                       />
+                      <video
+                        v-else-if="media.type === 'video' && media.url"
+                        class="memory-image-video"
+                        :src="media.url"
+                        object-fit="cover"
+                        :controls="false"
+                        :show-center-play-btn="false"
+                        :show-play-btn="false"
+                        :enable-progress-gesture="false"
+                        muted
+                      />
                       <view v-else class="memory-video-ph" />
                       <view v-if="media.type === 'video'" class="video-badge">
-                        <text>▶</text>
+                        <view class="video-play-triangle" />
                       </view>
                       <text
                         v-if="media.type === 'video' && media.duration"
@@ -616,9 +660,15 @@ function mediaDisplaySrc(media) {
   overflow: hidden;
 }
 
-.memory-image-photo {
+.memory-image-photo,
+.memory-image-video {
   width: 100%;
   height: 100%;
+}
+
+.memory-image-video {
+  display: block;
+  pointer-events: none;
 }
 
 .timeline-section--panel .memory-media-host--scroll {
@@ -690,21 +740,28 @@ function mediaDisplaySrc(media) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40rpx;
-  height: 40rpx;
+  width: 42rpx;
+  height: 42rpx;
   border-radius: 50%;
-  color: #f29abc;
-  font-size: 17rpx;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 6rpx 14rpx rgba(130, 88, 145, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 252, 0.86)),
+    rgba(255, 255, 255, 0.88);
+  border: 1rpx solid rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 8rpx 18rpx rgba(130, 88, 145, 0.12),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14rpx);
+  -webkit-backdrop-filter: blur(14rpx);
   transform: translate(-50%, -50%);
 }
 
-.video-badge text {
-  margin-left: 2rpx;
-  line-height: 1;
+.video-play-triangle {
+  width: 0;
+  height: 0;
+  margin-left: 3rpx;
+  border-top: 9rpx solid transparent;
+  border-bottom: 9rpx solid transparent;
+  border-left: 14rpx solid #f28bb3;
 }
 
 .video-time {

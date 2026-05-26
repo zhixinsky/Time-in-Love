@@ -8,14 +8,29 @@ import {
   getAuthHeaders
 } from '../config'
 
-let cloudReady = false
+const cloudState =
+  globalThis.__TIME_IN_LOVE_CLOUD_STATE__ ||
+  (globalThis.__TIME_IN_LOVE_CLOUD_STATE__ = {
+    ready: false,
+    envId: '',
+    service: ''
+  })
 
 /** 小程序启动时调用，避免 onLaunch 顺序导致 callContainer 失败 */
 export function initCloudContainer() {
+  if (
+    cloudState.ready &&
+    cloudState.envId === WX_CLOUD_ENV_ID &&
+    cloudState.service === WX_CLOUD_SERVICE
+  ) {
+    return true
+  }
   // #ifdef MP-WEIXIN
   if (typeof wx !== 'undefined' && wx.cloud) {
     wx.cloud.init({ env: WX_CLOUD_ENV_ID, traceUser: true })
-    cloudReady = true
+    cloudState.ready = true
+    cloudState.envId = WX_CLOUD_ENV_ID
+    cloudState.service = WX_CLOUD_SERVICE
     console.log('[cloud] init ok, env:', WX_CLOUD_ENV_ID, 'service:', WX_CLOUD_SERVICE)
     return true
   }
@@ -24,7 +39,7 @@ export function initCloudContainer() {
 }
 
 function ensureCloudContainer() {
-  if (cloudReady) return true
+  if (cloudState.ready) return true
   return initCloudContainer()
 }
 

@@ -21,14 +21,28 @@ export function resolveVideoPoster(coverUrl, videoUrl) {
   return cover
 }
 
+function pickCoverUrl(raw) {
+  return (
+    raw?.coverUrl ||
+    raw?.poster ||
+    raw?.posterUrl ||
+    raw?.thumbUrl ||
+    raw?.thumbnailUrl ||
+    raw?.coverImage ||
+    raw?.localCoverUrl ||
+    ''
+  )
+}
+
 export function mapTimelineMediaItem(raw) {
   if (!raw) return null
   const type = raw.type === 'video' ? 'video' : 'image'
   const url = resolveMediaUrl(raw.url)
+  const coverUrl = pickCoverUrl(raw)
   let poster =
     type === 'video'
-      ? resolveVideoPoster(raw.coverUrl, raw.url)
-      : resolveMediaUrl(raw.coverUrl || raw.url) || url
+      ? resolveVideoPoster(coverUrl, raw.url)
+      : resolveMediaUrl(coverUrl || raw.url) || url
   if (!url && !poster) return null
   return {
     type,
